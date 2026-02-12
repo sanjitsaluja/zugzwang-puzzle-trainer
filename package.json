@@ -6,17 +6,20 @@
   "license": "GPL-3.0",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "copy-stockfish": "mkdir -p public/stockfish && cp node_modules/stockfish/bin/stockfish-18-lite-single.js node_modules/stockfish/bin/stockfish-18-lite-single.wasm public/stockfish/",
+    "postinstall": "npm run copy-stockfish"
   },
   "dependencies": {
     "@lichess-org/chessground": "^10.0.2",
     "chess.js": "^1.4.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "stockfish": "^18.0.3",
     "zod": "^4.3.6"
   },
   "devDependencies": {

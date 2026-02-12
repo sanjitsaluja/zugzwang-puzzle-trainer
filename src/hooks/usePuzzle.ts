@@ -3,8 +3,18 @@ import { PuzzleEngine } from "@/lib/puzzle-engine";
 import type { MoveRecord } from "@/lib/puzzle-engine";
 import { useTimer } from "./useTimer";
 import { useAppState } from "./useAppState";
-import { getPuzzleById, loadPuzzles } from "@/lib/puzzles";
-import type { BoardColor, GamePhase, PuzzleData } from "@/types";
+import { useStockfish } from "./useStockfish";
+import { getPuzzleById, loadPuzzles, parseMoves } from "@/lib/puzzles";
+import type {
+  BoardColor,
+  GamePhase,
+  GetOpponentMoveFn,
+  ParsedMove,
+  PuzzleData,
+  PuzzleStrategy,
+  ValidateMoveFn,
+} from "@/types";
+
 import { TOTAL_PUZZLES } from "@/types";
 
 interface PuzzleSnapshot {
@@ -37,11 +47,44 @@ function takeSnapshot(engine: PuzzleEngine): PuzzleSnapshot {
   };
 }
 
+function createSolutionStrategy(solution: ParsedMove[]): PuzzleStrategy {
+  let solutionIndex = 0;
+
+  const validateMove: ValidateMoveFn = async (_fen, userMove, _remainingMateDepth) => {
+    const expected = solution[solutionIndex];
+    const isCorrect =
+      expected !== undefined &&
+      expected.from === userMove.from &&
+      expected.to === userMove.to &&
+      (expected.promotion === undefined || expected.promotion === userMove.promotion);
+
+    solutionIndex++;
+
+    if (!isCorrect) {
+      return { isCorrect: false, opponentMove: null };
+    }
+
+    const opponentMove = solution[solutionIndex] ?? null;
+    if (opponentMove) solutionIndex++;
+
+    return { isCorrect: true, opponentMove };
+  };
+
+  const getOpponentMove: GetOpponentMoveFn = async () => null;
+
+  return {
+    validateMove,
+    getOpponentMove,
+    freePlayBothSides: true,
+  };
+}
+
 export type { MoveRecord };
 
 export function usePuzzle() {
   const { state, updatePuzzle, setCurrentPuzzleId } = useAppState();
   const timer = useTimer();
+  const stockfish = useStockfish();
 
   const [puzzles, setPuzzles] = useState<PuzzleData[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -101,20 +144,39 @@ export function usePuzzle() {
       });
   }, []);
 
+  const stockfishRef = useRef(stockfish);
+  stockfishRef.current = stockfish;
+
+  const engineSettled =
+    !state.settings.engineEnabled ||
+    stockfish.status === "ready" ||
+    stockfish.status === "error";
+
   useEffect(() => {
-    if (!puzzles) return;
+    if (!puzzles || !engineSettled) return;
     const puzzle = getPuzzleById(puzzles, state.currentPuzzleId);
-    if (puzzle) {
-      engineRef.current?.loadPuzzle(puzzle);
-    }
-  }, [puzzles, state.currentPuzzleId]);
+    if (!puzzle) return;
+
+    const solution = parseMoves(puzzle.moves);
+    const sf = stockfishRef.current;
+    const useEngine = state.settings.engineEnabled && sf.status === "ready";
+
+    const strategy: PuzzleStrategy = useEngine
+      ? sf.createEngineStrategy(solution)
+      : createSolutionStrategy(solution);
+
+    console.log(`[usePuzzle] Loading puzzle #${puzzle.problemid} (${puzzle.type}), strategy=${useEngine ? "engine" : "solution"}`);
+    engineRef.current?.loadPuzzle(puzzle, strategy);
+  }, [puzzles, state.currentPuzzleId, state.settings.engineEnabled, engineSettled]);
 
   useEffect(() => {
     return () => engineRef.current?.dispose();
   }, []);
 
   const makeMove = useCallback((from: string, to: string, promotion?: string) => {
-    engineRef.current?.makeMove(from, to, promotion);
+    engineRef.current?.makeMove(from, to, promotion).catch((err: unknown) => {
+      console.error("Move processing failed:", err);
+    });
   }, []);
 
   const isLastPuzzle = state.currentPuzzleId >= TOTAL_PUZZLES;
@@ -133,6 +195,8 @@ export function usePuzzle() {
     nextPuzzle,
     isLastPuzzle,
     loadError,
-    isLoading: puzzles === null && loadError === null,
+    isLoading: (puzzles === null && loadError === null) || !engineSettled,
+    engineStatus: stockfish.status,
+    engineError: stockfish.error,
   };
 }

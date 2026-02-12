@@ -80,7 +80,9 @@ export function App() {
   const puzzle = usePuzzle();
 
   if (puzzle.isLoading) {
-    return <div className="app-loading">Loading puzzles...</div>;
+    const message =
+      puzzle.engineStatus === "loading" ? "Loading engine..." : "Loading puzzles...";
+    return <div className="app-loading">{message}</div>;
   }
 
   if (puzzle.loadError) {

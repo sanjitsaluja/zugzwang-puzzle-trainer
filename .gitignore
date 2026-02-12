@@ -7,3 +7,14 @@ dist/
 *.swo
 
 coverage/
+
+# Derived stockfish WASM files (copied from node_modules)
+public/stockfish/
+
+# TypeScript build artifacts (tsc -b output)
+tsconfig.app.tsbuildinfo
+tsconfig.node.tsbuildinfo
+src/**/*.js
+!src/**/*.config.js
+vite.config.js
+vitest.config.js

@@ -1,6 +1,14 @@
 import { ChessGame } from "./chess";
-import { parseMoves } from "./puzzles";
-import type { BoardColor, GamePhase, ParsedMove, PuzzleData } from "@/types";
+import { mateDepthFromType } from "./puzzles";
+import type {
+  BoardColor,
+  GamePhase,
+  ParsedMove,
+  PromotionPiece,
+  PuzzleData,
+  PuzzleStrategy,
+} from "@/types";
+import { PROMOTION_PIECES } from "@/types";
 
 export interface MoveRecord {
   moveNumber: number;
@@ -9,13 +17,16 @@ export interface MoveRecord {
 }
 
 const OPPONENT_DELAY_MS = 400;
+const VALID_PROMOTIONS = new Set<string>(PROMOTION_PIECES);
 
 export class PuzzleEngine {
   private game: ChessGame | null = null;
-  private solution: ParsedMove[] = [];
-  private solutionIndex = 0;
+  private strategy: PuzzleStrategy | null = null;
   private pendingMoveRecord: MoveRecord | null = null;
   private opponentTimeout: ReturnType<typeof setTimeout> | null = null;
+  private puzzleGeneration = 0;
+  private userMoveCount = 0;
+  private totalMateDepth = 0;
   private readonly onChange: () => void;
 
   private _phase: GamePhase = "loading";
@@ -60,15 +71,17 @@ export class PuzzleEngine {
   }
   get isInteractive(): boolean {
     if (this._phase !== "playing") return false;
-    if (this._isFailed) return true;
+    if (this._isFailed && this.strategy?.freePlayBothSides) return true;
     return this.turnColor === this.orientation;
   }
 
-  loadPuzzle(puzzle: PuzzleData): void {
+  loadPuzzle(puzzle: PuzzleData, strategy: PuzzleStrategy): void {
     this.clearOpponentTimeout();
+    this.puzzleGeneration++;
     this.game = new ChessGame(puzzle.fen);
-    this.solution = parseMoves(puzzle.moves);
-    this.solutionIndex = 0;
+    this.strategy = strategy;
+    this.userMoveCount = 0;
+    this.totalMateDepth = mateDepthFromType(puzzle.type);
     this._phase = "playing";
     this._isFailed = false;
     this._moveHistory = [];
@@ -78,67 +91,133 @@ export class PuzzleEngine {
     this.onChange();
   }
 
-  makeMove(from: string, to: string, promotion?: string): void {
-    if (this._phase !== "playing" || !this.game) return;
+  async makeMove(from: string, to: string, promotion?: string): Promise<void> {
+    if (this._phase !== "playing" || !this.game || !this.strategy) {
+      console.log(`[PE] makeMove blocked: phase=${this._phase} game=${!!this.game} strategy=${!!this.strategy}`);
+      return;
+    }
 
+    const gen = this.puzzleGeneration;
     const resolvedPromotion = promotion ?? this.autoPromote(from, to);
     const san = this.game.makeMove(from, to, resolvedPromotion);
     if (san === null) return;
 
+    console.log(`[PE] makeMove: ${san} (${from}-${to}) isFailed=${this._isFailed} freePlayBothSides=${this.strategy.freePlayBothSides}`);
     this._lastMove = [from, to];
 
     if (this._isFailed) {
-      this.handleFreePlayMove(san);
+      console.log("[PE] → handleFreePlayMove");
+      await this.handleFreePlayMove(san, gen);
       return;
     }
 
-    const expected = this.solution[this.solutionIndex];
-    const isCorrect =
-      expected !== undefined &&
-      expected.from === from &&
-      expected.to === to &&
-      (expected.promotion === undefined ||
-        expected.promotion === resolvedPromotion);
-
-    if (isCorrect) {
-      this.solutionIndex++;
-    } else {
-      this._isFailed = true;
-    }
-
-    this.pendingMoveRecord = {
-      moveNumber: this._moveHistory.length + 1,
-      userMove: { san, correct: isCorrect },
-    };
+    this.userMoveCount++;
 
     if (this.game.isCheckmate) {
+      console.log("[PE] → checkmate! complete");
+      this.pendingMoveRecord = {
+        moveNumber: this._moveHistory.length + 1,
+        userMove: { san, correct: true },
+      };
       this.finalizeMoveRecord();
       this._phase = "complete";
       this.onChange();
       return;
     }
 
-    if (this._isFailed) {
-      this.finalizeMoveRecord();
-      this.onChange();
+    this._phase = "validating";
+    this.onChange();
+
+    const userMove = this.toParsedMove(from, to, resolvedPromotion);
+    const remainingMateDepth = this.totalMateDepth - this.userMoveCount;
+    console.log(`[PE] → validating (totalMateDepth=${this.totalMateDepth} remaining=${remainingMateDepth})`);
+    const result = await this.strategy.validateMove(
+      this.game.fen,
+      userMove,
+      remainingMateDepth,
+    );
+    if (gen !== this.puzzleGeneration) {
+      console.log("[PE] → stale generation, discarding");
       return;
     }
 
-    if (this.hasOpponentResponse()) {
+    console.log(`[PE] → validation result: isCorrect=${result.isCorrect} opponentMove=${result.opponentMove ? `${result.opponentMove.from}-${result.opponentMove.to}` : "null"}`);
+
+    this.pendingMoveRecord = {
+      moveNumber: this._moveHistory.length + 1,
+      userMove: { san, correct: result.isCorrect },
+    };
+
+    if (!result.isCorrect) {
+      this._isFailed = true;
+    }
+
+    if (result.opponentMove) {
+      console.log("[PE] → opponent_turn, playing response");
       this._phase = "opponent_turn";
       this.onChange();
-      this.scheduleOpponentMove();
+      await this.delayAsync(OPPONENT_DELAY_MS);
+      if (gen !== this.puzzleGeneration) return;
+      this.applyOpponentMove(result.opponentMove);
     } else {
+      console.log("[PE] → no opponent move, back to playing");
       this.finalizeMoveRecord();
+      this._phase = "playing";
       this.onChange();
     }
   }
 
   dispose(): void {
     this.clearOpponentTimeout();
+    this.puzzleGeneration++;
   }
 
-  private handleFreePlayMove(san: string): void {
+  // ---------------------------------------------------------------------------
+  // Free play (after failure)
+  // ---------------------------------------------------------------------------
+
+  private async handleFreePlayMove(san: string, gen: number): Promise<void> {
+    if (!this.game || !this.strategy) return;
+
+    if (this.strategy.freePlayBothSides) {
+      console.log("[PE] freePlayBothSides: user plays both sides");
+      this.handleFreePlayBothSides(san);
+      return;
+    }
+
+    console.log("[PE] freePlay (engine mode): asking engine for opponent move");
+    this.pendingMoveRecord = {
+      moveNumber: this._moveHistory.length + 1,
+      userMove: { san, correct: false },
+    };
+
+    if (this.game.isCheckmate) {
+      console.log("[PE] freePlay: checkmate!");
+      this.finalizeMoveRecord();
+      this._phase = "complete";
+      this.onChange();
+      return;
+    }
+
+    this._phase = "opponent_turn";
+    this.onChange();
+
+    const opponentMove = await this.strategy.getOpponentMove(this.game.fen);
+    if (gen !== this.puzzleGeneration) return;
+
+    console.log(`[PE] freePlay opponent: ${opponentMove ? `${opponentMove.from}-${opponentMove.to}` : "null"}`);
+    if (opponentMove) {
+      await this.delayAsync(OPPONENT_DELAY_MS);
+      if (gen !== this.puzzleGeneration) return;
+      this.applyOpponentMove(opponentMove);
+    } else {
+      this.finalizeMoveRecord();
+      this._phase = "playing";
+      this.onChange();
+    }
+  }
+
+  private handleFreePlayBothSides(san: string): void {
     if (!this.game) return;
 
     const isUserSide = this.sideJustMoved() === this.orientation;
@@ -152,10 +231,7 @@ export class PuzzleEngine {
       if (this.game.isCheckmate) {
         this.finalizeMoveRecord();
         this._phase = "complete";
-        this.onChange();
-        return;
       }
-
       this.onChange();
     } else {
       if (this.pendingMoveRecord) {
@@ -166,9 +242,38 @@ export class PuzzleEngine {
       if (this.game.isCheckmate) {
         this._phase = "complete";
       }
-
       this.onChange();
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
+
+  private applyOpponentMove(move: ParsedMove): void {
+    if (!this.game) return;
+
+    const opSan = this.game.makeMove(move.from, move.to, move.promotion);
+    if (opSan && this.pendingMoveRecord) {
+      this._lastMove = [move.from, move.to];
+      this.pendingMoveRecord.opponentMove = { san: opSan };
+    }
+
+    this.finalizeMoveRecord();
+    this._phase = this.game.isCheckmate ? "complete" : "playing";
+    this.onChange();
+  }
+
+  private toParsedMove(from: string, to: string, promotion: string | undefined): ParsedMove {
+    const promo: PromotionPiece | undefined =
+      promotion !== undefined && VALID_PROMOTIONS.has(promotion)
+        ? (promotion as PromotionPiece)
+        : undefined;
+    return {
+      from: from as ParsedMove["from"],
+      to: to as ParsedMove["to"],
+      promotion: promo,
+    };
   }
 
   private sideJustMoved(): BoardColor {
@@ -182,55 +287,17 @@ export class PuzzleEngine {
     return undefined;
   }
 
-  private hasOpponentResponse(): boolean {
-    return (
-      this.solutionIndex < this.solution.length &&
-      this.solutionIndex % 2 === 1
-    );
-  }
-
-  private scheduleOpponentMove(): void {
-    this.opponentTimeout = setTimeout(() => {
-      this.playOpponentMove();
-    }, OPPONENT_DELAY_MS);
-  }
-
-  private playOpponentMove(): void {
-    if (!this.game || this._phase !== "opponent_turn") return;
-
-    const move = this.solution[this.solutionIndex];
-    if (!move) {
-      this._phase = "playing";
-      this.finalizeMoveRecord();
-      this.onChange();
-      return;
-    }
-
-    const san = this.game.makeMove(move.from, move.to, move.promotion);
-    if (san === null) {
-      this._phase = "playing";
-      this.finalizeMoveRecord();
-      this.onChange();
-      return;
-    }
-
-    this._lastMove = [move.from, move.to];
-    this.solutionIndex++;
-
-    if (this.pendingMoveRecord) {
-      this.pendingMoveRecord.opponentMove = { san };
-    }
-    this.finalizeMoveRecord();
-
-    this._phase = this.game.isCheckmate ? "complete" : "playing";
-    this.onChange();
-  }
-
   private finalizeMoveRecord(): void {
     if (this.pendingMoveRecord) {
       this._moveHistory = [...this._moveHistory, this.pendingMoveRecord];
       this.pendingMoveRecord = null;
     }
+  }
+
+  private delayAsync(ms: number): Promise<void> {
+    return new Promise((resolve) => {
+      this.opponentTimeout = setTimeout(resolve, ms);
+    });
   }
 
   private clearOpponentTimeout(): void {

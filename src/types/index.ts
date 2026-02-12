@@ -98,6 +98,29 @@ export const AppStateSchema = z.object({
 export type AppState = z.infer<typeof AppStateSchema>;
 
 // ---------------------------------------------------------------------------
+// Puzzle validation strategy
+// ---------------------------------------------------------------------------
+
+export interface MoveValidationResult {
+  isCorrect: boolean;
+  opponentMove: ParsedMove | null;
+}
+
+export type ValidateMoveFn = (
+  fen: string,
+  userMove: ParsedMove,
+  remainingMateDepth: number,
+) => Promise<MoveValidationResult>;
+
+export type GetOpponentMoveFn = (fen: string) => Promise<ParsedMove | null>;
+
+export interface PuzzleStrategy {
+  validateMove: ValidateMoveFn;
+  getOpponentMove: GetOpponentMoveFn;
+  freePlayBothSides: boolean;
+}
+
+// ---------------------------------------------------------------------------
 // Derived stats (computed, never stored)
 // ---------------------------------------------------------------------------
 

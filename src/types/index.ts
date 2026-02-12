@@ -31,13 +31,24 @@ export type ProblemsFile = z.infer<typeof ProblemsFileSchema>;
 export const TOTAL_PUZZLES = 4462;
 
 // ---------------------------------------------------------------------------
-// Parsed move representation
+// Squares & moves
 // ---------------------------------------------------------------------------
 
+export const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"] as const;
+export type File = (typeof FILES)[number];
+
+export const RANKS = ["1", "2", "3", "4", "5", "6", "7", "8"] as const;
+export type Rank = (typeof RANKS)[number];
+
+export type Square = `${File}${Rank}`;
+
+export const PROMOTION_PIECES = ["q", "r", "b", "n"] as const;
+export type PromotionPiece = (typeof PROMOTION_PIECES)[number];
+
 export interface ParsedMove {
-  from: string;
-  to: string;
-  promotion: string | undefined;
+  from: Square;
+  to: Square;
+  promotion: PromotionPiece | undefined;
 }
 
 // ---------------------------------------------------------------------------
@@ -60,21 +71,24 @@ export type GamePhase = (typeof GAME_PHASE)[number];
 export const PUZZLE_STATUS = ["unattempted", "success", "fail"] as const;
 export type PuzzleStatus = (typeof PUZZLE_STATUS)[number];
 
-export interface PuzzleState {
-  status: PuzzleStatus;
-  timeMs: number | null;
-  attempts: number;
-}
+export const PuzzleStateSchema = z.object({
+  status: z.enum(PUZZLE_STATUS),
+  timeMs: z.number().nullable(),
+  attempts: z.number().int().nonnegative(),
+});
+export type PuzzleState = z.infer<typeof PuzzleStateSchema>;
 
-export interface AppSettings {
-  engineEnabled: boolean;
-}
+export const AppSettingsSchema = z.object({
+  engineEnabled: z.boolean(),
+});
+export type AppSettings = z.infer<typeof AppSettingsSchema>;
 
-export interface AppState {
-  currentPuzzleId: number;
-  puzzles: Record<number, PuzzleState>;
-  settings: AppSettings;
-}
+export const AppStateSchema = z.object({
+  currentPuzzleId: z.number().int().positive(),
+  puzzles: z.record(z.coerce.number(), PuzzleStateSchema),
+  settings: AppSettingsSchema,
+});
+export type AppState = z.infer<typeof AppStateSchema>;
 
 // ---------------------------------------------------------------------------
 // Derived stats (computed, never stored)

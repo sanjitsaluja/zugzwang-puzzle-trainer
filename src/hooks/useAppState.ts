@@ -1,4 +1,4 @@
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback, useMemo, useSyncExternalStore } from "react";
 import type { AppState, DerivedStats, PuzzleState } from "@/types";
 import {
   computeStats,
@@ -33,35 +33,30 @@ export function useAppState(): {
   setEngineEnabled: (enabled: boolean) => void;
 } {
   const state = useSyncExternalStore(subscribe, getSnapshot);
-  const stats = computeStats(state.puzzles);
+  const stats = useMemo(() => computeStats(state.puzzles), [state.puzzles]);
 
   const updatePuzzle = useCallback(
     (id: number, update: Partial<PuzzleState>) => {
-      const prev = state.puzzles[id] ?? defaultPuzzleState();
+      const current = currentState;
+      const prev = current.puzzles[id] ?? defaultPuzzleState();
       setState({
-        ...state,
-        puzzles: { ...state.puzzles, [id]: { ...prev, ...update } },
+        ...current,
+        puzzles: { ...current.puzzles, [id]: { ...prev, ...update } },
       });
     },
-    [state],
+    [],
   );
 
-  const setCurrentPuzzleId = useCallback(
-    (id: number) => {
-      setState({ ...state, currentPuzzleId: id });
-    },
-    [state],
-  );
+  const setCurrentPuzzleId = useCallback((id: number) => {
+    setState({ ...currentState, currentPuzzleId: id });
+  }, []);
 
-  const setEngineEnabled = useCallback(
-    (enabled: boolean) => {
-      setState({
-        ...state,
-        settings: { ...state.settings, engineEnabled: enabled },
-      });
-    },
-    [state],
-  );
+  const setEngineEnabled = useCallback((enabled: boolean) => {
+    setState({
+      ...currentState,
+      settings: { ...currentState.settings, engineEnabled: enabled },
+    });
+  }, []);
 
   return { state, stats, updatePuzzle, setCurrentPuzzleId, setEngineEnabled };
 }

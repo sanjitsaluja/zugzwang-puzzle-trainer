@@ -76,6 +76,44 @@ describe("save and load", () => {
     );
     expect(loadAppState()).toEqual(defaultAppState());
   });
+
+  it("returns default state when data has correct version but invalid AppState shape", () => {
+    localStorage.setItem(
+      "zugzwang-state",
+      JSON.stringify({ version: 1, data: { garbage: true } }),
+    );
+    expect(loadAppState()).toEqual(defaultAppState());
+  });
+
+  it("returns default state when puzzles contain invalid status", () => {
+    localStorage.setItem(
+      "zugzwang-state",
+      JSON.stringify({
+        version: 1,
+        data: {
+          currentPuzzleId: 1,
+          puzzles: { 1: { status: "INVALID", timeMs: null, attempts: 0 } },
+          settings: { engineEnabled: true },
+        },
+      }),
+    );
+    expect(loadAppState()).toEqual(defaultAppState());
+  });
+
+  it("returns default state when settings shape is wrong", () => {
+    localStorage.setItem(
+      "zugzwang-state",
+      JSON.stringify({
+        version: 1,
+        data: {
+          currentPuzzleId: 1,
+          puzzles: {},
+          settings: { engineEnabled: "not-a-boolean" },
+        },
+      }),
+    );
+    expect(loadAppState()).toEqual(defaultAppState());
+  });
 });
 
 // ---------------------------------------------------------------------------

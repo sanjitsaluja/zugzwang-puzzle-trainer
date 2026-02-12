@@ -1,4 +1,4 @@
-import type { AppState, DerivedStats, PuzzleState } from "@/types";
+import { type AppState, type DerivedStats, type PuzzleState, AppStateSchema } from "@/types";
 
 const STORAGE_KEY = "zugzwang-state";
 const SCHEMA_VERSION = 1;
@@ -35,7 +35,10 @@ export function loadAppState(): AppState {
     if (!isStoredState(stored)) return defaultAppState();
     if (stored.version !== SCHEMA_VERSION) return migrateState(stored);
 
-    return stored.data;
+    const result = AppStateSchema.safeParse(stored.data);
+    if (!result.success) return defaultAppState();
+
+    return result.data;
   } catch {
     return defaultAppState();
   }

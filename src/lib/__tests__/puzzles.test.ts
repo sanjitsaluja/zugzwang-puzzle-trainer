@@ -1,11 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   parseMove,
   parseMoves,
   mateDepthFromType,
   getPuzzleById,
+  loadPuzzles,
+  _resetCache,
 } from "../puzzles";
 import type { PuzzleData } from "@/types";
+import { TOTAL_PUZZLES } from "@/types";
 
 // ---------------------------------------------------------------------------
 // parseMove
@@ -56,12 +59,39 @@ describe("parseMove", () => {
     expect(() => parseMove("abc-d4")).toThrow("Invalid 'from' square");
   });
 
+  it("throws on invalid from square (bad file)", () => {
+    expect(() => parseMove("z1-a2")).toThrow("Invalid 'from' square");
+  });
+
+  it("throws on invalid from square (bad rank)", () => {
+    expect(() => parseMove("a9-b2")).toThrow("Invalid 'from' square");
+  });
+
+  it("throws on invalid to square (bad file)", () => {
+    expect(() => parseMove("a1-z2")).toThrow("Invalid 'to' square");
+  });
+
+  it("throws on invalid to square (bad rank)", () => {
+    expect(() => parseMove("a1-b0")).toThrow("Invalid 'to' square");
+  });
+
   it("throws on invalid to portion (too long)", () => {
     expect(() => parseMove("a1-b2qr")).toThrow("Invalid 'to' portion");
   });
 
   it("throws on invalid to portion (too short)", () => {
-    expect(() => parseMove("a1-b")).toThrow("Invalid 'to' portion");
+    expect(() => parseMove("a1-b")).toThrow("Invalid 'to' square");
+  });
+
+  it("throws on invalid promotion piece", () => {
+    expect(() => parseMove("a7-a8k")).toThrow("Invalid promotion piece");
+  });
+
+  it("accepts all valid promotion pieces", () => {
+    for (const piece of ["q", "r", "b", "n"]) {
+      const result = parseMove(`a7-a8${piece}`);
+      expect(result.promotion).toBe(piece);
+    }
   });
 });
 
@@ -145,5 +175,94 @@ describe("getPuzzleById", () => {
 
   it("returns undefined for missing id", () => {
     expect(getPuzzleById(puzzles, 999)).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// loadPuzzles (fetch + caching + race protection)
+// ---------------------------------------------------------------------------
+
+function makeFakePuzzle(id: number): PuzzleData {
+  return {
+    problemid: id,
+    first: "White to Move",
+    type: "Mate in One",
+    fen: "3q1rk1/5pbp/5Qp1/8/8/2B5/5PPP/6K1 w - - 0 1",
+    moves: "f6-g7",
+  };
+}
+
+function fakePuzzlesResponse(): { problems: PuzzleData[] } {
+  return {
+    problems: Array.from({ length: TOTAL_PUZZLES }, (_, i) =>
+      makeFakePuzzle(i + 1),
+    ),
+  };
+}
+
+describe("loadPuzzles", () => {
+  beforeEach(() => {
+    _resetCache();
+    vi.restoreAllMocks();
+  });
+
+  afterEach(() => {
+    _resetCache();
+  });
+
+  it("fetches, parses, and returns puzzles", async () => {
+    const body = fakePuzzlesResponse();
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify(body), { status: 200 }),
+    );
+
+    const puzzles = await loadPuzzles();
+    expect(puzzles).toHaveLength(TOTAL_PUZZLES);
+    expect(puzzles[0]?.problemid).toBe(1);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("caches result — second call does not re-fetch", async () => {
+    const body = fakePuzzlesResponse();
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify(body), { status: 200 }),
+    );
+
+    await loadPuzzles();
+    await loadPuzzles();
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("concurrent calls share a single fetch", async () => {
+    const body = fakePuzzlesResponse();
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify(body), { status: 200 }),
+    );
+
+    const [a, b] = await Promise.all([loadPuzzles(), loadPuzzles()]);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(a).toBe(b);
+  });
+
+  it("clears cached promise on fetch failure so retry works", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+
+    fetchSpy.mockRejectedValueOnce(new Error("network error"));
+    await expect(loadPuzzles()).rejects.toThrow("network error");
+
+    const body = fakePuzzlesResponse();
+    fetchSpy.mockResolvedValueOnce(
+      new Response(JSON.stringify(body), { status: 200 }),
+    );
+    const puzzles = await loadPuzzles();
+    expect(puzzles).toHaveLength(TOTAL_PUZZLES);
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("throws on non-ok response", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("", { status: 404 }),
+    );
+    await expect(loadPuzzles()).rejects.toThrow("Failed to fetch puzzles: 404");
   });
 });

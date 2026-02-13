@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PuzzleEngine } from "@/lib/puzzle-engine";
-import type { MoveRecord } from "@/lib/puzzle-engine";
+import type { FeedbackEvent, MoveRecord } from "@/lib/puzzle-engine";
 import { useTimer } from "./useTimer";
 import { useAppState } from "./useAppState";
 import { useStockfish } from "./useStockfish";
@@ -29,6 +29,7 @@ interface PuzzleSnapshot {
   isCheck: boolean;
   moveHistory: MoveRecord[];
   puzzleData: PuzzleData | null;
+  feedbackEvent: FeedbackEvent | null;
 }
 
 function takeSnapshot(engine: PuzzleEngine): PuzzleSnapshot {
@@ -44,6 +45,7 @@ function takeSnapshot(engine: PuzzleEngine): PuzzleSnapshot {
     isCheck: engine.isCheck,
     moveHistory: engine.moveHistory,
     puzzleData: engine.puzzleData,
+    feedbackEvent: engine.feedbackEvent,
   };
 }
 
@@ -100,6 +102,7 @@ export function usePuzzle() {
     isCheck: false,
     moveHistory: [],
     puzzleData: null,
+    feedbackEvent: null,
   });
 
   const engineRef = useRef<PuzzleEngine>(null);

@@ -1,11 +1,13 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ActionBar } from "@/components/ActionBar";
 import { Board } from "@/components/Board";
+import { FeedbackToast } from "@/components/FeedbackToast";
 import { MoveList } from "@/components/MoveList";
 import { PuzzleInfo } from "@/components/PuzzleInfo";
 import { Timer } from "@/components/Timer";
 import { usePuzzle } from "@/hooks/usePuzzle";
+import type { FeedbackKind } from "@/lib/puzzle-engine";
 import type { BoardColor } from "@/types";
 import "@/styles/app.css";
 
@@ -20,11 +22,21 @@ function deriveCheckColor(isCheck: boolean, turnColor: BoardColor): BoardColor |
   return isCheck ? turnColor : false;
 }
 
+function feedbackMessage(kind: FeedbackKind): string {
+  if (kind === "correct") return "Correct!";
+  return "Not the best move. Keep playing to explore.";
+}
+
 export function App() {
   const { puzzleId: puzzleIdParam } = useParams<{ puzzleId: string }>();
   const navigate = useNavigate();
   const puzzle = usePuzzle();
   const routePuzzleId = parseRoutePuzzleId(puzzleIdParam);
+  const [pulseKind, setPulseKind] = useState<FeedbackKind | null>(null);
+  const [pulseVariant, setPulseVariant] = useState<"pulse-a" | "pulse-b">("pulse-a");
+  const [toastKind, setToastKind] = useState<FeedbackKind | null>(null);
+  const [toastMessage, setToastMessage] = useState("");
+  const lastFeedbackIdRef = useRef(0);
 
   useEffect(() => {
     if (routePuzzleId === null) {
@@ -35,6 +47,33 @@ export function App() {
       puzzle.goToPuzzle(routePuzzleId);
     }
   }, [navigate, puzzle.currentPuzzleId, puzzle.goToPuzzle, routePuzzleId]);
+
+  useEffect(() => {
+    const feedback = puzzle.feedbackEvent;
+    if (!feedback || feedback.id <= lastFeedbackIdRef.current) return;
+    lastFeedbackIdRef.current = feedback.id;
+    setPulseKind(feedback.kind);
+    setPulseVariant((current) => (current === "pulse-a" ? "pulse-b" : "pulse-a"));
+    setToastKind(feedback.kind);
+    setToastMessage(feedbackMessage(feedback.kind));
+  }, [puzzle.feedbackEvent]);
+
+  useEffect(() => {
+    if (!pulseKind) return;
+    const timeout = window.setTimeout(() => {
+      setPulseKind(null);
+    }, 550);
+    return () => window.clearTimeout(timeout);
+  }, [pulseKind]);
+
+  useEffect(() => {
+    if (!toastKind) return;
+    const timeout = window.setTimeout(() => {
+      setToastKind(null);
+      setToastMessage("");
+    }, 2500);
+    return () => window.clearTimeout(timeout);
+  }, [toastKind]);
 
   if (puzzle.isLoading) {
     const message =
@@ -58,9 +97,13 @@ export function App() {
     isComplete ? "state-complete" : "",
     isComplete && !puzzle.isFailed ? "state-success" : "",
     isComplete && puzzle.isFailed ? "state-failed" : "",
+    !isComplete && puzzle.isFailed ? "state-failed-active" : "",
+    !isComplete && pulseKind ? `state-pulse-${pulseKind}` : "",
+    !isComplete && pulseKind ? pulseVariant : "",
   ]
     .filter(Boolean)
     .join(" ");
+
   const boardLastMove = puzzle.lastMove;
   const handleBack = () => {
     if (isFirstPuzzle) return;
@@ -105,6 +148,8 @@ export function App() {
             phase={puzzle.phase}
             isFailed={puzzle.isFailed}
           />
+
+          {toastKind && <FeedbackToast kind={toastKind} message={toastMessage} />}
 
           <MoveList
             moves={puzzle.moveHistory}

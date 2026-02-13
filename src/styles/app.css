@@ -82,7 +82,7 @@ body {
   border-radius: 4px;
   overflow: hidden;
   border: 3px solid transparent;
-  transition: border-color 0.3s ease;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .board-wrapper.state-complete.state-success {
@@ -91,6 +91,51 @@ body {
 
 .board-wrapper.state-complete.state-failed {
   border-color: var(--accent-red);
+}
+
+.board-wrapper.state-failed-active {
+  border-color: color-mix(in srgb, var(--accent-red) 65%, transparent);
+  box-shadow: 0 0 0.5rem color-mix(in srgb, var(--accent-red) 30%, transparent);
+}
+
+.board-wrapper.state-pulse-correct.pulse-a,
+.board-wrapper.state-pulse-correct.pulse-b {
+  animation: board-pulse-correct 0.5s ease;
+}
+
+.board-wrapper.state-pulse-incorrect.pulse-a,
+.board-wrapper.state-pulse-incorrect.pulse-b {
+  animation: board-pulse-incorrect 0.5s ease;
+}
+
+@keyframes board-pulse-correct {
+  0% {
+    border-color: transparent;
+    box-shadow: 0 0 0 rgba(76, 175, 80, 0);
+  }
+  40% {
+    border-color: var(--accent-green);
+    box-shadow: 0 0 1rem rgba(76, 175, 80, 0.5);
+  }
+  100% {
+    border-color: transparent;
+    box-shadow: 0 0 0 rgba(76, 175, 80, 0);
+  }
+}
+
+@keyframes board-pulse-incorrect {
+  0% {
+    border-color: color-mix(in srgb, var(--accent-red) 65%, transparent);
+    box-shadow: 0 0 0.5rem color-mix(in srgb, var(--accent-red) 30%, transparent);
+  }
+  40% {
+    border-color: var(--accent-red);
+    box-shadow: 0 0 1rem rgba(224, 85, 85, 0.6);
+  }
+  100% {
+    border-color: color-mix(in srgb, var(--accent-red) 65%, transparent);
+    box-shadow: 0 0 0.5rem color-mix(in srgb, var(--accent-red) 30%, transparent);
+  }
 }
 
 /* Info panel */
@@ -177,6 +222,35 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-top: 2px;
+}
+
+.feedback-toast {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  background: var(--bg-panel-section);
+  color: var(--text-primary);
+  animation: toast-fade-in 0.2s ease;
+}
+
+.feedback-toast.correct {
+  border-color: color-mix(in srgb, var(--accent-green) 60%, var(--border-color));
+}
+
+.feedback-toast.incorrect {
+  border-color: color-mix(in srgb, var(--accent-red) 60%, var(--border-color));
+}
+
+@keyframes toast-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Move list */

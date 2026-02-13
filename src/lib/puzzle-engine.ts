@@ -16,6 +16,13 @@ export interface MoveRecord {
   opponentMove?: { san: string };
 }
 
+export type FeedbackKind = "correct" | "incorrect";
+
+export interface FeedbackEvent {
+  id: number;
+  kind: FeedbackKind;
+}
+
 const OPPONENT_DELAY_MS = 400;
 const VALID_PROMOTIONS = new Set<string>(PROMOTION_PIECES);
 
@@ -25,6 +32,7 @@ export class PuzzleEngine {
   private pendingMoveRecord: MoveRecord | null = null;
   private opponentTimeout: ReturnType<typeof setTimeout> | null = null;
   private puzzleGeneration = 0;
+  private feedbackSequence = 0;
   private userMoveCount = 0;
   private totalMateDepth = 0;
   private readonly onChange: () => void;
@@ -34,6 +42,7 @@ export class PuzzleEngine {
   private _moveHistory: MoveRecord[] = [];
   private _lastMove: [string, string] | undefined = undefined;
   private _puzzleData: PuzzleData | null = null;
+  private _feedbackEvent: FeedbackEvent | null = null;
 
   constructor(onChange: () => void) {
     this.onChange = onChange;
@@ -69,6 +78,9 @@ export class PuzzleEngine {
   get puzzleData(): PuzzleData | null {
     return this._puzzleData;
   }
+  get feedbackEvent(): FeedbackEvent | null {
+    return this._feedbackEvent;
+  }
   get isInteractive(): boolean {
     if (this._phase !== "playing") return false;
     if (this._isFailed && this.strategy?.freePlayBothSides) return true;
@@ -87,6 +99,7 @@ export class PuzzleEngine {
     this._moveHistory = [];
     this._lastMove = undefined;
     this._puzzleData = puzzle;
+    this._feedbackEvent = null;
     this.pendingMoveRecord = null;
     this.onChange();
   }
@@ -119,6 +132,9 @@ export class PuzzleEngine {
         moveNumber: this._moveHistory.length + 1,
         userMove: { san, correct: true },
       };
+      if (!this._isFailed) {
+        this.emitFeedback("correct");
+      }
       this.finalizeMoveRecord();
       this._phase = "complete";
       this.onChange();
@@ -150,6 +166,9 @@ export class PuzzleEngine {
 
     if (!result.isCorrect) {
       this._isFailed = true;
+      this.emitFeedback("incorrect");
+    } else {
+      this.emitFeedback("correct");
     }
 
     if (result.opponentMove) {
@@ -305,5 +324,13 @@ export class PuzzleEngine {
       clearTimeout(this.opponentTimeout);
       this.opponentTimeout = null;
     }
+  }
+
+  private emitFeedback(kind: FeedbackKind): void {
+    this.feedbackSequence += 1;
+    this._feedbackEvent = {
+      id: this.feedbackSequence,
+      kind,
+    };
   }
 }

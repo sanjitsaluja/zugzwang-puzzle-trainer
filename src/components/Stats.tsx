@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import {
   createColumnHelper,
   flexRender,
@@ -7,6 +7,10 @@ import {
 } from "@tanstack/react-table";
 import { PuzzleTimer } from "@/lib/timer";
 import type { DerivedStats, PuzzleState } from "@/types";
+import { Button } from "@/components/ui/Button";
+import { Label } from "@/components/ui/Label";
+import { MetricCard } from "@/components/ui/MetricCard";
+import { Panel } from "@/components/ui/Panel";
 
 interface StatsProps {
   open: boolean;
@@ -43,6 +47,20 @@ const mostMissedColumns = [
     header: "Attempts",
   }),
 ];
+
+interface StatsSectionProps {
+  title: string;
+  children: ReactNode;
+}
+
+function StatsSection({ title, children }: StatsSectionProps) {
+  return (
+    <Panel className="ui-stats-section">
+      <Label className="ui-stats-section-title">{title}</Label>
+      {children}
+    </Panel>
+  );
+}
 
 export function Stats({
   open,
@@ -99,85 +117,53 @@ export function Stats({
   if (!open) return null;
 
   return (
-    <div className="stats-overlay" onClick={(event) => event.target === event.currentTarget && onClose()}>
-      <section className="stats-modal" role="dialog" aria-modal="true" aria-label="Statistics">
-        <header className="stats-header">
-          <h2>Statistics</h2>
-          <button className="btn stats-close" onClick={onClose}>
+    <div className="ui-stats-overlay" onClick={(event) => event.target === event.currentTarget && onClose()}>
+      <Panel className="ui-stats-modal" role="dialog" aria-modal="true" aria-label="Statistics">
+        <header className="ui-stats-header">
+          <h2 className="ui-stats-title">Statistics</h2>
+          <Button className="ui-stats-close-button" onClick={onClose}>
             Close
-          </button>
+          </Button>
         </header>
 
-        <section className="stats-section">
-          <h3>Progress</h3>
-          <div className="stats-grid">
-            <div className="stats-card">
-              <span className="stats-label">Current puzzle</span>
-              <span className="stats-value">
-                Puzzle {currentPuzzleId} / {totalPuzzles}
-              </span>
-            </div>
-            <div className="stats-card">
-              <span className="stats-label">Remaining</span>
-              <span className="stats-value">{remainingCount}</span>
-            </div>
+        <StatsSection title="Progress">
+          <div className="ui-stats-grid">
+            <MetricCard
+              label="Current puzzle"
+              value={`Puzzle ${currentPuzzleId} / ${totalPuzzles}`}
+            />
+            <MetricCard label="Remaining" value={remainingCount} />
           </div>
-          <div className="stats-progress">
-            <div className="stats-progress-track">
-              <div
-                className="stats-progress-fill"
-                style={{ width: `${progressRatio * 100}%` }}
-              />
+          <div className="ui-stats-progress">
+            <div className="ui-stats-progress-track">
+              <div className="ui-stats-progress-fill" style={{ width: `${progressRatio * 100}%` }} />
             </div>
-            <span className="stats-progress-text">{progressPercent}% complete</span>
+            <span className="ui-stats-progress-text">{progressPercent}% complete</span>
           </div>
-        </section>
+        </StatsSection>
 
-        <section className="stats-section">
-          <h3>Performance Summary</h3>
-          <div className="stats-grid">
-            <div className="stats-card">
-              <span className="stats-label">Attempted</span>
-              <span className="stats-value">{stats.totalAttempted}</span>
-            </div>
-            <div className="stats-card">
-              <span className="stats-label">Solved</span>
-              <span className="stats-value">{stats.totalSolved}</span>
-            </div>
-            <div className="stats-card">
-              <span className="stats-label">Failed</span>
-              <span className="stats-value">{failedCount}</span>
-            </div>
-            <div className="stats-card">
-              <span className="stats-label">Success rate</span>
-              <span className="stats-value">{successPercent}%</span>
-            </div>
-            <div className="stats-card">
-              <span className="stats-label">Average solve time</span>
-              <span className="stats-value">{averageSolveTime}</span>
-            </div>
-            <div className="stats-card">
-              <span className="stats-label">Total attempts</span>
-              <span className="stats-value">{totalAttempts}</span>
-            </div>
-            <div className="stats-card">
-              <span className="stats-label">Extra retries</span>
-              <span className="stats-value">{extraRetries}</span>
-            </div>
+        <StatsSection title="Performance Summary">
+          <div className="ui-stats-grid">
+            <MetricCard label="Attempted" value={stats.totalAttempted} />
+            <MetricCard label="Solved" value={stats.totalSolved} />
+            <MetricCard label="Failed" value={failedCount} />
+            <MetricCard label="Success rate" value={`${successPercent}%`} />
+            <MetricCard label="Average solve time" value={averageSolveTime} />
+            <MetricCard label="Total attempts" value={totalAttempts} />
+            <MetricCard label="Extra retries" value={extraRetries} />
           </div>
-        </section>
+        </StatsSection>
 
-        <section className="stats-section">
-          <h3>Most Missed Puzzles</h3>
+        <StatsSection title="Most Missed Puzzles">
           {mostMissedData.length === 0 ? (
-            <p className="stats-empty">No missed puzzles yet. Keep training.</p>
+            <p className="ui-stats-empty">No missed puzzles yet. Keep training.</p>
           ) : (
-            <table className="stats-table">
+            <table className="ui-stats-table">
               <thead>
                 {table.getHeaderGroups().map((group) => (
                   <tr key={group.id}>
                     {group.headers.map((header) => (
-                      <th key={header.id}>
+                      <th key={header.id} className="ui-stats-table-header-cell">
                         {header.isPlaceholder
                           ? null
                           : flexRender(
@@ -193,15 +179,12 @@ export function Stats({
                 {table.getRowModel().rows.map((row) => (
                   <tr key={row.id}>
                     {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id}>
+                      <td key={cell.id} className="ui-stats-table-cell">
                         {cell.column.id === "puzzleId" ? (
-                          <button
-                            className="stats-link"
-                            onClick={() => {
-                              onOpenPuzzle(row.original.puzzleId);
-                              onClose();
-                            }}
-                          >
+                          <button className="ui-stats-link" onClick={() => {
+                            onOpenPuzzle(row.original.puzzleId);
+                            onClose();
+                          }}>
                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                           </button>
                         ) : (
@@ -214,28 +197,30 @@ export function Stats({
               </tbody>
             </table>
           )}
-        </section>
+        </StatsSection>
 
-        <footer className="stats-footer">
+        <footer className="ui-stats-footer">
           {!confirmingReset ? (
-            <button className="btn stats-reset" onClick={() => setConfirmingReset(true)}>
+            <Button className="ui-stats-reset-button" onClick={() => setConfirmingReset(true)}>
               Reset Stats
-            </button>
+            </Button>
           ) : (
-            <div className="stats-confirm">
-              <span>Clear all puzzle stats? Current puzzle position will be kept.</span>
-              <div className="stats-confirm-actions">
-                <button className="btn" onClick={() => setConfirmingReset(false)}>
+            <div className="ui-stats-confirm">
+              <span className="ui-stats-confirm-message">
+                Clear all puzzle stats? Current puzzle position will be kept.
+              </span>
+              <div className="ui-stats-confirm-actions">
+                <Button onClick={() => setConfirmingReset(false)}>
                   Cancel
-                </button>
-                <button className="btn stats-reset-confirm" onClick={handleReset}>
+                </Button>
+                <Button variant="danger" onClick={handleReset}>
                   Confirm Reset
-                </button>
+                </Button>
               </div>
             </div>
           )}
         </footer>
-      </section>
+      </Panel>
     </div>
   );
 }

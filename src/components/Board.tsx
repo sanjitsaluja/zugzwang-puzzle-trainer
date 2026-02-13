@@ -94,5 +94,5 @@ export function Board({
     });
   }, [fen, orientation, turnColor, dests, interactive, lastMove, check]);
 
-  return <div ref={containerRef} className="board-container" />;
+  return <div ref={containerRef} className="ui-board-root" />;
 }

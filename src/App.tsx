@@ -9,9 +9,15 @@ import { Stats } from "@/components/Stats";
 import { Timer } from "@/components/Timer";
 import { useAppState } from "@/hooks/useAppState";
 import { usePuzzle } from "@/hooks/usePuzzle";
+import { useTheme } from "@/hooks/useTheme";
 import type { FeedbackKind } from "@/lib/puzzle-engine";
 import { TOTAL_PUZZLES, type BoardColor } from "@/types";
-import "@/styles/app.css";
+
+type PulseVariant = "pulse-a" | "pulse-b";
+type BoardVisualState = "neutral" | "success" | "failed" | "failed-active";
+
+const APP_LOADING_CLASS = "ui-app-status ui-app-status-loading";
+const APP_ERROR_CLASS = "ui-app-status ui-app-status-error";
 
 function parseRoutePuzzleId(value: string | undefined): number | null {
   if (!value) return null;
@@ -34,9 +40,10 @@ export function App() {
   const navigate = useNavigate();
   const { state, stats, resetPuzzleStats } = useAppState();
   const puzzle = usePuzzle();
+  const theme = useTheme();
   const routePuzzleId = parseRoutePuzzleId(puzzleIdParam);
   const [pulseKind, setPulseKind] = useState<FeedbackKind | null>(null);
-  const [pulseVariant, setPulseVariant] = useState<"pulse-a" | "pulse-b">("pulse-a");
+  const [pulseVariant, setPulseVariant] = useState<PulseVariant>("pulse-a");
   const [toastKind, setToastKind] = useState<FeedbackKind | null>(null);
   const [toastMessage, setToastMessage] = useState("");
   const [isStatsOpen, setIsStatsOpen] = useState(false);
@@ -82,11 +89,11 @@ export function App() {
   if (puzzle.isLoading) {
     const message =
       puzzle.engineStatus === "loading" ? "Loading engine..." : "Loading puzzles...";
-    return <div className="app-loading">{message}</div>;
+    return <div className={APP_LOADING_CLASS}>{message}</div>;
   }
 
   if (puzzle.loadError) {
-    return <div className="app-error">{puzzle.loadError}</div>;
+    return <div className={APP_ERROR_CLASS}>{puzzle.loadError}</div>;
   }
 
   const puzzleId = puzzle.puzzleData?.problemid ?? 1;
@@ -96,17 +103,15 @@ export function App() {
   const isFirstPuzzle = puzzle.currentPuzzleId <= 1;
   const canAdvance = isComplete && !puzzle.isLastPuzzle;
 
-  const boardStateClass = [
-    "board-wrapper",
-    isComplete ? "state-complete" : "",
-    isComplete && !puzzle.isFailed ? "state-success" : "",
-    isComplete && puzzle.isFailed ? "state-failed" : "",
-    !isComplete && puzzle.isFailed ? "state-failed-active" : "",
-    !isComplete && pulseKind ? `state-pulse-${pulseKind}` : "",
-    !isComplete && pulseKind ? pulseVariant : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const boardVisualState: BoardVisualState = isComplete
+    ? puzzle.isFailed
+      ? "failed"
+      : "success"
+    : puzzle.isFailed
+      ? "failed-active"
+      : "neutral";
+  const boardPulseKind = !isComplete ? pulseKind : null;
+  const boardPulseVariant = boardPulseKind ? pulseVariant : null;
 
   const boardLastMove = puzzle.lastMove;
   const handleBack = () => {
@@ -132,10 +137,20 @@ export function App() {
     navigate(`/puzzle/${targetPuzzleId}`);
   };
 
+  const settingsLabel =
+    theme.preference === "system"
+      ? `Theme: Auto (${theme.resolvedTheme})`
+      : `Theme: ${theme.preference === "dark" ? "Dark" : "Light"}`;
+
   return (
-    <div className="app">
-      <div className="puzzle-layout">
-        <div className={boardStateClass}>
+    <div className="ui-app-shell">
+      <div className="ui-app-layout">
+        <div
+          className="ui-board-wrapper"
+          data-state={boardVisualState}
+          data-pulse-kind={boardPulseKind ?? undefined}
+          data-pulse-variant={boardPulseVariant ?? undefined}
+        >
           <Board
             fen={puzzle.fen}
             orientation={puzzle.orientation}
@@ -148,7 +163,7 @@ export function App() {
           />
         </div>
 
-        <div className="info-panel">
+        <div className="ui-app-sidebar">
           <PuzzleInfo
             puzzleId={puzzleId}
             puzzleType={puzzleType}
@@ -177,7 +192,8 @@ export function App() {
             isComplete={isComplete}
             isLastPuzzle={puzzle.isLastPuzzle}
             onBack={handleBack}
-            onOpenSettings={() => {}}
+            settingsLabel={settingsLabel}
+            onOpenSettings={theme.cyclePreference}
             onOpenStats={handleOpenStats}
             onNext={handleNext}
           />

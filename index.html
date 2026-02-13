@@ -4,6 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Zugzwang — Chess Puzzle Trainer</title>
+    <script>
+      (() => {
+        const key = "zugzwang.theme";
+        const stored = window.localStorage.getItem(key);
+        const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const resolved = stored === "light" || stored === "dark" ? stored : isDark ? "dark" : "light";
+        if (stored === "light" || stored === "dark") {
+          document.documentElement.setAttribute("data-theme", stored);
+        }
+        document.documentElement.style.colorScheme = resolved;
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

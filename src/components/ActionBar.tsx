@@ -1,9 +1,12 @@
+import { Button } from "@/components/ui/Button";
+
 interface ActionBarProps {
   isBackDisabled: boolean;
   isNextDisabled: boolean;
   isNextActive: boolean;
   isComplete: boolean;
   isLastPuzzle: boolean;
+  settingsLabel: string;
   onBack: () => void;
   onOpenSettings: () => void;
   onOpenStats: () => void;
@@ -16,29 +19,31 @@ export function ActionBar({
   isNextActive,
   isComplete,
   isLastPuzzle,
+  settingsLabel,
   onBack,
   onOpenSettings,
   onOpenStats,
   onNext,
 }: ActionBarProps) {
   return (
-    <div className="action-bar">
-      <button className="btn btn-back" disabled={isBackDisabled} onClick={onBack}>
+    <div className="ui-action-bar">
+      <Button className="ui-action-bar-button ui-action-bar-button-compact" disabled={isBackDisabled} onClick={onBack}>
         Back
-      </button>
-      <button className="btn btn-icon" onClick={onOpenSettings}>
-        Settings
-      </button>
-      <button className="btn btn-stats" onClick={onOpenStats}>
+      </Button>
+      <Button className="ui-action-bar-button ui-action-bar-button-compact" onClick={onOpenSettings}>
+        {settingsLabel}
+      </Button>
+      <Button className="ui-action-bar-button ui-action-bar-button-compact" onClick={onOpenStats}>
         Stats
-      </button>
-      <button
-        className={`btn btn-next ${isNextActive ? "active" : ""}`}
+      </Button>
+      <Button
+        className="ui-action-bar-button ui-action-bar-button-next"
+        variant={isNextActive ? "primary" : "default"}
         disabled={isNextDisabled}
         onClick={onNext}
       >
         {isLastPuzzle && isComplete ? "All puzzles complete!" : "Next →"}
-      </button>
+      </Button>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import type { GamePhase } from "@/types";
 import { TOTAL_PUZZLES } from "@/types";
+import { Panel } from "@/components/ui/Panel";
 
 interface PuzzleInfoProps {
   puzzleId: number;
@@ -7,16 +8,6 @@ interface PuzzleInfoProps {
   sideToMove: string;
   phase: GamePhase;
   isFailed: boolean;
-}
-
-function PuzzleStatus({ phase, isFailed }: { phase: GamePhase; isFailed: boolean }) {
-  if (phase === "complete" && !isFailed) {
-    return <span className="puzzle-status solved"> &middot; Solved &#10003;</span>;
-  }
-  if (phase === "complete" && isFailed) {
-    return <span className="puzzle-status failed"> &middot; Failed</span>;
-  }
-  return null;
 }
 
 export function PuzzleInfo({
@@ -27,21 +18,34 @@ export function PuzzleInfo({
   isFailed,
 }: PuzzleInfoProps) {
   const isComplete = phase === "complete";
+  const statusState = isComplete ? (isFailed ? "danger" : "success") : null;
+  const statusLabel = isFailed ? "Failed" : "Solved";
 
   return (
-    <div className="puzzle-info">
+    <Panel className="ui-puzzle-info-panel">
       <div>
-        <div className="puzzle-number">
-          {puzzleId} <span className="total">/ {TOTAL_PUZZLES}</span>
+        <div className="ui-puzzle-number">
+          {puzzleId}{" "}
+          <span className="ui-puzzle-total">
+            / {TOTAL_PUZZLES}
+          </span>
         </div>
-        <div className="puzzle-meta">
-          <span className="puzzle-type">{puzzleType}</span>
+        <div className="ui-puzzle-meta">
+          <span className="ui-puzzle-type">{puzzleType}</span>
           {!isComplete && (
-            <span className="puzzle-status"> &middot; {sideToMove.replace(" to Move", " to move")}</span>
+            <span className="ui-puzzle-side">
+              {" "}
+              &middot; {sideToMove.replace(" to Move", " to move")}
+            </span>
           )}
-          <PuzzleStatus phase={phase} isFailed={isFailed} />
+          {statusState && (
+            <span className="ui-puzzle-status" data-state={statusState}>
+              {" "}
+              &middot; {statusLabel}
+            </span>
+          )}
         </div>
       </div>
-    </div>
+    </Panel>
   );
 }

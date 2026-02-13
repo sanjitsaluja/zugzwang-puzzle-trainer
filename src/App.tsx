@@ -1,75 +1,19 @@
+import { useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { ActionBar } from "@/components/ActionBar";
 import { Board } from "@/components/Board";
+import { MoveList } from "@/components/MoveList";
+import { PuzzleInfo } from "@/components/PuzzleInfo";
+import { Timer } from "@/components/Timer";
 import { usePuzzle } from "@/hooks/usePuzzle";
-import type { MoveRecord } from "@/hooks/usePuzzle";
-import type { BoardColor, GamePhase } from "@/types";
-import { TOTAL_PUZZLES } from "@/types";
+import type { BoardColor } from "@/types";
 import "@/styles/app.css";
 
-function MoveList({ moves, showPlaceholder }: { moves: MoveRecord[]; showPlaceholder: boolean }) {
-  return (
-    <div className="moves-section">
-      <div className="moves-header">Moves</div>
-      <ol className="move-list">
-        {moves.map((record) => (
-          <li key={record.moveNumber} className="move-row">
-            <span className="move-number">{record.moveNumber}.</span>
-            <span className={`move-san ${record.userMove.correct ? "correct" : "incorrect"}`}>
-              {record.userMove.san}
-              {!record.userMove.correct ? "?" : ""}
-            </span>
-            {record.opponentMove && (
-              <span className="move-opponent">{record.opponentMove.san}</span>
-            )}
-          </li>
-        ))}
-        {showPlaceholder && (
-          <li className="move-row">
-            <span className="move-number">{moves.length + 1}.</span>
-            <span className="move-placeholder">Your move...</span>
-          </li>
-        )}
-      </ol>
-    </div>
-  );
-}
-
-function TimerDisplay({
-  formatted,
-  phase,
-  isFailed,
-}: {
-  formatted: string;
-  phase: GamePhase;
-  isFailed: boolean;
-}) {
-  const isComplete = phase === "complete";
-  const timerClass = isComplete
-    ? isFailed
-      ? "failed"
-      : "success"
-    : "";
-  const label = isComplete
-    ? isFailed
-      ? "Time"
-      : "Solve Time"
-    : "Elapsed";
-
-  return (
-    <div className="timer-section">
-      <div className={`timer-display ${timerClass}`}>{formatted}</div>
-      <div className="timer-label">{label}</div>
-    </div>
-  );
-}
-
-function PuzzleStatus({ phase, isFailed }: { phase: GamePhase; isFailed: boolean }) {
-  if (phase === "complete" && !isFailed) {
-    return <span className="puzzle-status solved"> &middot; Solved &#10003;</span>;
-  }
-  if (phase === "complete" && isFailed) {
-    return <span className="puzzle-status failed"> &middot; Failed</span>;
-  }
-  return null;
+function parseRoutePuzzleId(value: string | undefined): number | null {
+  if (!value) return null;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) return null;
+  return parsed;
 }
 
 function deriveCheckColor(isCheck: boolean, turnColor: BoardColor): BoardColor | false {
@@ -77,7 +21,20 @@ function deriveCheckColor(isCheck: boolean, turnColor: BoardColor): BoardColor |
 }
 
 export function App() {
+  const { puzzleId: puzzleIdParam } = useParams<{ puzzleId: string }>();
+  const navigate = useNavigate();
   const puzzle = usePuzzle();
+  const routePuzzleId = parseRoutePuzzleId(puzzleIdParam);
+
+  useEffect(() => {
+    if (routePuzzleId === null) {
+      navigate(`/puzzle/${puzzle.currentPuzzleId}`, { replace: true });
+      return;
+    }
+    if (routePuzzleId !== puzzle.currentPuzzleId) {
+      puzzle.goToPuzzle(routePuzzleId);
+    }
+  }, [navigate, puzzle.currentPuzzleId, puzzle.goToPuzzle, routePuzzleId]);
 
   if (puzzle.isLoading) {
     const message =
@@ -93,6 +50,8 @@ export function App() {
   const puzzleType = puzzle.puzzleData?.type ?? "";
   const sideToMove = puzzle.puzzleData?.first ?? "";
   const isComplete = puzzle.phase === "complete";
+  const isFirstPuzzle = puzzle.currentPuzzleId <= 1;
+  const canAdvance = isComplete && !puzzle.isLastPuzzle;
 
   const boardStateClass = [
     "board-wrapper",
@@ -102,6 +61,19 @@ export function App() {
   ]
     .filter(Boolean)
     .join(" ");
+  const boardLastMove = puzzle.lastMove;
+  const handleBack = () => {
+    if (isFirstPuzzle) return;
+    const targetPuzzleId = puzzle.currentPuzzleId - 1;
+    puzzle.previousPuzzle();
+    navigate(`/puzzle/${targetPuzzleId}`);
+  };
+  const handleNext = () => {
+    if (!canAdvance) return;
+    const targetPuzzleId = puzzle.currentPuzzleId + 1;
+    puzzle.nextPuzzle();
+    navigate(`/puzzle/${targetPuzzleId}`);
+  };
 
   return (
     <div className="app">
@@ -113,29 +85,22 @@ export function App() {
             turnColor={puzzle.turnColor}
             dests={puzzle.dests}
             interactive={puzzle.isInteractive}
-            lastMove={puzzle.lastMove}
+            {...(boardLastMove ? { lastMove: boardLastMove } : {})}
             check={deriveCheckColor(puzzle.isCheck, puzzle.turnColor)}
             onMove={puzzle.makeMove}
           />
         </div>
 
         <div className="info-panel">
-          <div className="puzzle-info">
-            <div>
-              <div className="puzzle-number">
-                {puzzleId} <span className="total">/ {TOTAL_PUZZLES}</span>
-              </div>
-              <div className="puzzle-meta">
-                <span className="puzzle-type">{puzzleType}</span>
-                {!isComplete && (
-                  <span className="puzzle-status"> &middot; {sideToMove.replace(" to Move", " to move")}</span>
-                )}
-                <PuzzleStatus phase={puzzle.phase} isFailed={puzzle.isFailed} />
-              </div>
-            </div>
-          </div>
+          <PuzzleInfo
+            puzzleId={puzzleId}
+            puzzleType={puzzleType}
+            sideToMove={sideToMove}
+            phase={puzzle.phase}
+            isFailed={puzzle.isFailed}
+          />
 
-          <TimerDisplay
+          <Timer
             formatted={puzzle.formattedTime}
             phase={puzzle.phase}
             isFailed={puzzle.isFailed}
@@ -146,15 +111,17 @@ export function App() {
             showPlaceholder={puzzle.phase === "playing" && !puzzle.isFailed}
           />
 
-          <div className="action-bar">
-            <button
-              className={`btn btn-next ${isComplete && !puzzle.isLastPuzzle ? "active" : ""}`}
-              disabled={!isComplete || puzzle.isLastPuzzle}
-              onClick={puzzle.nextPuzzle}
-            >
-              {puzzle.isLastPuzzle && isComplete ? "All puzzles complete!" : "Next \u2192"}
-            </button>
-          </div>
+          <ActionBar
+            isBackDisabled={isFirstPuzzle}
+            isNextDisabled={!canAdvance}
+            isNextActive={canAdvance}
+            isComplete={isComplete}
+            isLastPuzzle={puzzle.isLastPuzzle}
+            onBack={handleBack}
+            onOpenSettings={() => {}}
+            onOpenStats={() => {}}
+            onNext={handleNext}
+          />
         </div>
       </div>
     </div>

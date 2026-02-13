@@ -187,12 +187,29 @@ export function usePuzzle() {
     setCurrentPuzzleId(state.currentPuzzleId + 1);
   }, [snapshot.phase, state.currentPuzzleId, setCurrentPuzzleId]);
 
+  const previousPuzzle = useCallback(() => {
+    if (state.currentPuzzleId <= 1) return;
+    setCurrentPuzzleId(state.currentPuzzleId - 1);
+  }, [state.currentPuzzleId, setCurrentPuzzleId]);
+
+  const goToPuzzle = useCallback(
+    (puzzleId: number) => {
+      const clampedId = Math.max(1, Math.min(TOTAL_PUZZLES, puzzleId));
+      if (clampedId === state.currentPuzzleId) return;
+      setCurrentPuzzleId(clampedId);
+    },
+    [state.currentPuzzleId, setCurrentPuzzleId],
+  );
+
   return {
     ...snapshot,
+    currentPuzzleId: state.currentPuzzleId,
     elapsedMs: timer.elapsedMs,
     formattedTime: timer.formatted,
     makeMove,
     nextPuzzle,
+    previousPuzzle,
+    goToPuzzle,
     isLastPuzzle,
     loadError,
     isLoading: (puzzles === null && loadError === null) || !engineSettled,

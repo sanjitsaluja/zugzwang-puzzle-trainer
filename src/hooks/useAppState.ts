@@ -31,6 +31,7 @@ export function useAppState(): {
   updatePuzzle: (id: number, update: Partial<PuzzleState>) => void;
   setCurrentPuzzleId: (id: number) => void;
   setEngineEnabled: (enabled: boolean) => void;
+  resetPuzzleStats: () => void;
 } {
   const state = useSyncExternalStore(subscribe, getSnapshot);
   const stats = useMemo(() => computeStats(state.puzzles), [state.puzzles]);
@@ -58,5 +59,19 @@ export function useAppState(): {
     });
   }, []);
 
-  return { state, stats, updatePuzzle, setCurrentPuzzleId, setEngineEnabled };
+  const resetPuzzleStats = useCallback(() => {
+    setState({
+      ...currentState,
+      puzzles: {},
+    });
+  }, []);
+
+  return {
+    state,
+    stats,
+    updatePuzzle,
+    setCurrentPuzzleId,
+    setEngineEnabled,
+    resetPuzzleStats,
+  };
 }

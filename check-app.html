@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zugzwang App Checker</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #e0e0e0;
+        }
+        h1 { color: #4a9eff; }
+        .section {
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .status { margin: 10px 0; padding: 10px; border-radius: 4px; }
+        .loading { background: #2a3a4a; border-left: 4px solid #4a9eff; }
+        .success { background: #2a4a2a; border-left: 4px solid #4aff4a; }
+        .error { background: #4a2a2a; border-left: 4px solid #ff4a4a; }
+        .console-log {
+            background: #1a1a1a;
+            border: 1px solid #3a3a3a;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .log-entry { margin: 5px 0; }
+        .log-error { color: #ff6b6b; }
+        .log-warn { color: #ffd93d; }
+        .log-info { color: #6bcfff; }
+        button {
+            background: #4a9eff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #3a8eef; }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #3a3a3a;
+            border-radius: 8px;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Zugzwang App Diagnostic Tool</h1>
+
+    <div class="section">
+        <h2>Console Logs</h2>
+        <div id="console-logs" class="console-log">
+            <div class="log-entry log-info">Waiting for logs...</div>
+        </div>
+        <button onclick="clearLogs()">Clear Logs</button>
+    </div>
+
+    <div class="section">
+        <h2>Status Checks</h2>
+        <div id="status-container"></div>
+        <button onclick="runChecks()">Run Checks</button>
+    </div>
+
+    <div class="section">
+        <h2>App Preview</h2>
+        <iframe id="app-frame" src="http://localhost:5174/"></iframe>
+    </div>
+
+    <script>
+        const logs = [];
+        const consoleContainer = document.getElementById('console-logs');
+        const statusContainer = document.getElementById('status-container');
+
+        // Intercept console messages from iframe
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'console') {
+                addLog(event.data.level, event.data.message);
+            }
+        });
+
+        function addLog(level, message) {
+            const timestamp = new Date().toLocaleTimeString();
+            logs.push({ level, message, timestamp });
+            updateConsole();
+        }
+
+        function updateConsole() {
+            consoleContainer.innerHTML = logs.map(log => {
+                const className = `log-entry log-${log.level}`;
+                return `<div class="${className}">[${log.timestamp}] [${log.level.toUpperCase()}] ${escapeHtml(log.message)}</div>`;
+            }).join('');
+            consoleContainer.scrollTop = consoleContainer.scrollHeight;
+        }
+
+        function clearLogs() {
+            logs.length = 0;
+            updateConsole();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function runChecks() {
+            statusContainer.innerHTML = '<div class="status loading">Running checks...</div>';
+            const results = [];
+
+            // Check 1: Server is running
+            try {
+                const response = await fetch('http://localhost:5174/');
+                if (response.ok) {
+                    results.push({ status: 'success', message: '✓ Dev server is running on port 5174' });
+                } else {
+                    results.push({ status: 'error', message: `✗ Server responded with status ${response.status}` });
+                }
+            } catch (err) {
+                results.push({ status: 'error', message: '✗ Cannot connect to dev server on port 5174' });
+            }
+
+            // Check 2: Stockfish files
+            try {
+                const jsResponse = await fetch('http://localhost:5174/stockfish/stockfish-18-lite-single.js');
+                const wasmResponse = await fetch('http://localhost:5174/stockfish/stockfish-18-lite-single.wasm');
+
+                if (jsResponse.ok && wasmResponse.ok) {
+                    results.push({ status: 'success', message: '✓ Stockfish files are accessible' });
+                } else {
+                    results.push({ status: 'error', message: '✗ Stockfish files not found (404)' });
+                }
+            } catch (err) {
+                results.push({ status: 'error', message: '✗ Error checking Stockfish files' });
+            }
+
+            // Check 3: Puzzle data
+            try {
+                const response = await fetch('http://localhost:5174/data/puzzles.csv');
+                if (response.ok) {
+                    results.push({ status: 'success', message: '✓ Puzzle data is accessible' });
+                } else {
+                    results.push({ status: 'error', message: '✗ Puzzle data not found (404)' });
+                }
+            } catch (err) {
+                results.push({ status: 'error', message: '✗ Error checking puzzle data' });
+            }
+
+            // Display results
+            statusContainer.innerHTML = results.map(r =>
+                `<div class="status ${r.status}">${r.message}</div>`
+            ).join('');
+        }
+
+        // Inject console interceptor into iframe
+        const iframe = document.getElementById('app-frame');
+        iframe.onload = function() {
+            try {
+                const iframeWindow = iframe.contentWindow;
+                const originalConsole = {
+                    log: iframeWindow.console.log,
+                    error: iframeWindow.console.error,
+                    warn: iframeWindow.console.warn,
+                    info: iframeWindow.console.info
+                };
+
+                ['log', 'error', 'warn', 'info'].forEach(level => {
+                    iframeWindow.console[level] = function(...args) {
+                        originalConsole[level].apply(iframeWindow.console, args);
+                        const message = args.map(arg => {
+                            if (typeof arg === 'object') {
+                                try { return JSON.stringify(arg); }
+                                catch { return String(arg); }
+                            }
+                            return String(arg);
+                        }).join(' ');
+                        addLog(level, message);
+                    };
+                });
+
+                // Also capture errors
+                iframeWindow.addEventListener('error', (event) => {
+                    addLog('error', `${event.message} at ${event.filename}:${event.lineno}:${event.colno}`);
+                });
+
+                iframeWindow.addEventListener('unhandledrejection', (event) => {
+                    addLog('error', `Unhandled Promise Rejection: ${event.reason}`);
+                });
+            } catch (err) {
+                addLog('warn', 'Could not intercept iframe console (CORS restriction)');
+            }
+        };
+
+        // Run checks on load
+        setTimeout(runChecks, 1000);
+    </script>
+</body>
+</html>

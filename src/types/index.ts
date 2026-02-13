@@ -82,6 +82,8 @@ export const PuzzleStateSchema = z.object({
   status: z.enum(PUZZLE_STATUS),
   timeMs: z.number().nullable(),
   attempts: z.number().int().nonnegative(),
+  successCount: z.number().int().nonnegative().default(0),
+  failCount: z.number().int().nonnegative().default(0),
 });
 export type PuzzleState = z.infer<typeof PuzzleStateSchema>;
 

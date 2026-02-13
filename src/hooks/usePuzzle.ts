@@ -10,6 +10,7 @@ import type {
   GamePhase,
   GetOpponentMoveFn,
   ParsedMove,
+  PuzzleState,
   PuzzleData,
   PuzzleStrategy,
   ValidateMoveFn,
@@ -30,6 +31,29 @@ interface PuzzleSnapshot {
   moveHistory: MoveRecord[];
   puzzleData: PuzzleData | null;
   feedbackEvent: FeedbackEvent | null;
+}
+
+export function buildFailureProgressUpdate(
+  previous: PuzzleState | undefined,
+): Partial<PuzzleState> {
+  return {
+    status: "fail",
+    failCount: (previous?.failCount ?? 0) + 1,
+  };
+}
+
+export function buildCompletionProgressUpdate(
+  previous: PuzzleState | undefined,
+  wasSuccess: boolean,
+  finalMs: number,
+): Partial<PuzzleState> {
+  return {
+    status: wasSuccess ? "success" : "fail",
+    timeMs: finalMs,
+    attempts: (previous?.attempts ?? 0) + 1,
+    successCount: (previous?.successCount ?? 0) + (wasSuccess ? 1 : 0),
+    failCount: previous?.failCount ?? 0,
+  };
 }
 
 function takeSnapshot(engine: PuzzleEngine): PuzzleSnapshot {
@@ -113,10 +137,23 @@ export function usePuzzle() {
   }
 
   const prevPhaseRef = useRef<GamePhase>("loading");
+  const prevIsFailedRef = useRef(false);
   const timerRef = useRef(timer);
   timerRef.current = timer;
   const updatePuzzleRef = useRef(updatePuzzle);
   updatePuzzleRef.current = updatePuzzle;
+
+  useEffect(() => {
+    const justFailed = snapshot.isFailed && !prevIsFailedRef.current;
+    prevIsFailedRef.current = snapshot.isFailed;
+    if (!justFailed || !snapshot.puzzleData) return;
+
+    const puzzleId = snapshot.puzzleData.problemid;
+    updatePuzzleRef.current(
+      puzzleId,
+      buildFailureProgressUpdate(state.puzzles[puzzleId]),
+    );
+  }, [snapshot.isFailed, snapshot.puzzleData, state.puzzles]);
 
   useEffect(() => {
     const phase = snapshot.phase;
@@ -130,11 +167,12 @@ export function usePuzzle() {
       const finalMs = timerRef.current.stop();
       const puzzleData = snapshot.puzzleData;
       if (puzzleData) {
-        updatePuzzleRef.current(puzzleData.problemid, {
-          status: snapshot.isFailed ? "fail" : "success",
-          timeMs: finalMs,
-          attempts: (state.puzzles[puzzleData.problemid]?.attempts ?? 0) + 1,
-        });
+        const prevPuzzleState = state.puzzles[puzzleData.problemid];
+        const wasSuccess = !snapshot.isFailed;
+        updatePuzzleRef.current(
+          puzzleData.problemid,
+          buildCompletionProgressUpdate(prevPuzzleState, wasSuccess, finalMs),
+        );
       }
     }
   }, [snapshot.phase, snapshot.puzzleData, snapshot.isFailed, state.puzzles]);

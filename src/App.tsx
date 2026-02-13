@@ -5,10 +5,12 @@ import { Board } from "@/components/Board";
 import { FeedbackToast } from "@/components/FeedbackToast";
 import { MoveList } from "@/components/MoveList";
 import { PuzzleInfo } from "@/components/PuzzleInfo";
+import { Stats } from "@/components/Stats";
 import { Timer } from "@/components/Timer";
+import { useAppState } from "@/hooks/useAppState";
 import { usePuzzle } from "@/hooks/usePuzzle";
 import type { FeedbackKind } from "@/lib/puzzle-engine";
-import type { BoardColor } from "@/types";
+import { TOTAL_PUZZLES, type BoardColor } from "@/types";
 import "@/styles/app.css";
 
 function parseRoutePuzzleId(value: string | undefined): number | null {
@@ -30,12 +32,14 @@ function feedbackMessage(kind: FeedbackKind): string {
 export function App() {
   const { puzzleId: puzzleIdParam } = useParams<{ puzzleId: string }>();
   const navigate = useNavigate();
+  const { state, stats, resetPuzzleStats } = useAppState();
   const puzzle = usePuzzle();
   const routePuzzleId = parseRoutePuzzleId(puzzleIdParam);
   const [pulseKind, setPulseKind] = useState<FeedbackKind | null>(null);
   const [pulseVariant, setPulseVariant] = useState<"pulse-a" | "pulse-b">("pulse-a");
   const [toastKind, setToastKind] = useState<FeedbackKind | null>(null);
   const [toastMessage, setToastMessage] = useState("");
+  const [isStatsOpen, setIsStatsOpen] = useState(false);
   const lastFeedbackIdRef = useRef(0);
 
   useEffect(() => {
@@ -117,6 +121,16 @@ export function App() {
     puzzle.nextPuzzle();
     navigate(`/puzzle/${targetPuzzleId}`);
   };
+  const handleOpenStats = () => {
+    setIsStatsOpen(true);
+  };
+  const handleCloseStats = () => {
+    setIsStatsOpen(false);
+  };
+  const handleOpenPuzzleFromStats = (targetPuzzleId: number) => {
+    puzzle.goToPuzzle(targetPuzzleId);
+    navigate(`/puzzle/${targetPuzzleId}`);
+  };
 
   return (
     <div className="app">
@@ -164,11 +178,21 @@ export function App() {
             isLastPuzzle={puzzle.isLastPuzzle}
             onBack={handleBack}
             onOpenSettings={() => {}}
-            onOpenStats={() => {}}
+            onOpenStats={handleOpenStats}
             onNext={handleNext}
           />
         </div>
       </div>
+      <Stats
+        open={isStatsOpen}
+        onClose={handleCloseStats}
+        onOpenPuzzle={handleOpenPuzzleFromStats}
+        onResetStats={resetPuzzleStats}
+        stats={stats}
+        puzzles={state.puzzles}
+        currentPuzzleId={state.currentPuzzleId}
+        totalPuzzles={TOTAL_PUZZLES}
+      />
     </div>
   );
 }

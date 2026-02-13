@@ -23,6 +23,8 @@ export function defaultPuzzleState(): PuzzleState {
     status: "unattempted",
     timeMs: null,
     attempts: 0,
+    successCount: 0,
+    failCount: 0,
   };
 }
 

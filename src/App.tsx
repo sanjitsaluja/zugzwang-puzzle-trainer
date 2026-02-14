@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ActionBar } from "@/components/ActionBar";
 import { Board } from "@/components/Board";
@@ -6,10 +6,14 @@ import { MenuModal } from "@/components/MenuModal";
 import { MoveList } from "@/components/MoveList";
 import { PuzzleInfo } from "@/components/PuzzleInfo";
 import { Timer } from "@/components/Timer";
-import { useAppState } from "@/hooks/useAppState";
+import { useStats } from "@/hooks/useStats";
 import { usePuzzle } from "@/hooks/usePuzzle";
-import { useTheme } from "@/hooks/useTheme";
+import { loadPuzzles } from "@/lib/puzzles";
 import type { FeedbackKind } from "@/lib/puzzle-engine";
+import {
+  createPuzzleDataProvider,
+  type PuzzleDataProvider,
+} from "@/lib/stats-manager";
 import { TOTAL_PUZZLES, type BoardColor } from "@/types";
 
 type PulseVariant = "pulse-a" | "pulse-b";
@@ -17,6 +21,15 @@ type BoardVisualState = "neutral" | "success" | "failed" | "failed-active";
 
 const APP_LOADING_CLASS = "ui-app-status ui-app-status-loading";
 const APP_ERROR_CLASS = "ui-app-status ui-app-status-error";
+
+const FALLBACK_STATS_PROVIDER: PuzzleDataProvider = {
+  getMateIn(): number {
+    return 1;
+  },
+  getTotalCount(): number {
+    return TOTAL_PUZZLES;
+  },
+};
 
 function parseRoutePuzzleId(value: string | undefined): number | null {
   if (!value) return null;
@@ -32,9 +45,35 @@ function deriveCheckColor(isCheck: boolean, turnColor: BoardColor): BoardColor |
 export function App() {
   const { puzzleId: puzzleIdParam } = useParams<{ puzzleId: string }>();
   const navigate = useNavigate();
-  const { state, stats, resetPuzzleStats } = useAppState();
-  const puzzle = usePuzzle();
-  const theme = useTheme();
+  const [statsProvider, setStatsProvider] = useState<PuzzleDataProvider>(FALLBACK_STATS_PROVIDER);
+  const {
+    recordAttempt,
+    solved,
+    retryQueue,
+    currentStreak,
+    bestStreak,
+    successRate,
+    totalPuzzles,
+    typeStats,
+  } = useStats(statsProvider);
+  const handlePuzzleComplete = useCallback(
+    (event: { puzzleId: number; timeMs: number; success: boolean }) => {
+      if (!event.success) return;
+      recordAttempt(event.puzzleId, event.timeMs, event.success);
+    },
+    [recordAttempt],
+  );
+  const handlePuzzleFailed = useCallback(
+    (event: { puzzleId: number; timeMs: number }) => {
+      recordAttempt(event.puzzleId, event.timeMs, false);
+    },
+    [recordAttempt],
+  );
+  const puzzle = usePuzzle({
+    onPuzzleFailed: handlePuzzleFailed,
+    onPuzzleComplete: handlePuzzleComplete,
+  });
+  const { currentPuzzleId, goToPuzzle } = puzzle;
   const routePuzzleId = parseRoutePuzzleId(puzzleIdParam);
   const [pulseKind, setPulseKind] = useState<FeedbackKind | null>(null);
   const [pulseVariant, setPulseVariant] = useState<PulseVariant>("pulse-a");
@@ -42,14 +81,30 @@ export function App() {
   const lastFeedbackIdRef = useRef(0);
 
   useEffect(() => {
+    let isCancelled = false;
+    loadPuzzles()
+      .then((puzzles) => {
+        if (isCancelled) return;
+        setStatsProvider(createPuzzleDataProvider(puzzles));
+      })
+      .catch((error: unknown) => {
+        console.error("Failed to initialize stats provider:", error);
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     if (routePuzzleId === null) {
-      navigate(`/puzzle/${puzzle.currentPuzzleId}`, { replace: true });
+      navigate(`/puzzle/${currentPuzzleId}`, { replace: true });
       return;
     }
-    if (routePuzzleId !== puzzle.currentPuzzleId) {
-      puzzle.goToPuzzle(routePuzzleId);
+    if (routePuzzleId !== currentPuzzleId) {
+      goToPuzzle(routePuzzleId);
     }
-  }, [navigate, puzzle.currentPuzzleId, puzzle.goToPuzzle, routePuzzleId]);
+  }, [currentPuzzleId, goToPuzzle, navigate, routePuzzleId]);
 
   useEffect(() => {
     const feedback = puzzle.feedbackEvent;
@@ -148,7 +203,7 @@ export function App() {
           <button
             className="ui-header-menu-btn"
             onClick={handleOpenMenu}
-            aria-label="Open menu"
+            aria-label="Open stats"
           >
             <svg viewBox="0 0 4 16" width="4" height="16" fill="currentColor" aria-hidden="true">
               <circle cx="2" cy="2" r="1.5" />
@@ -205,14 +260,14 @@ export function App() {
         open={isMenuOpen}
         onClose={handleCloseMenu}
         onOpenPuzzle={handleOpenPuzzleFromStats}
-        onResetStats={resetPuzzleStats}
-        stats={stats}
-        puzzles={state.puzzles}
-        currentPuzzleId={state.currentPuzzleId}
-        totalPuzzles={TOTAL_PUZZLES}
-        themePreference={theme.preference}
-        resolvedTheme={theme.resolvedTheme}
-        onSetThemePreference={theme.setPreference}
+        solved={solved}
+        retryQueue={retryQueue}
+        currentStreak={currentStreak}
+        bestStreak={bestStreak}
+        successRate={successRate}
+        currentPuzzle={puzzle.currentPuzzleId}
+        totalPuzzles={totalPuzzles}
+        typeStats={typeStats}
       />
     </div>
   );

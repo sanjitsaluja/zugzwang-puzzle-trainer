@@ -43,6 +43,22 @@ interface PuzzleSession {
   hintMove: ParsedMove | null;
 }
 
+interface PuzzleCompletionEvent {
+  puzzleId: number;
+  timeMs: number;
+  success: boolean;
+}
+
+interface PuzzleFailureEvent {
+  puzzleId: number;
+  timeMs: number;
+}
+
+interface UsePuzzleOptions {
+  onPuzzleFailed?: (event: PuzzleFailureEvent) => void;
+  onPuzzleComplete?: (event: PuzzleCompletionEvent) => void;
+}
+
 export function buildFailureProgressUpdate(
   previous: PuzzleState | undefined,
 ): Partial<PuzzleState> {
@@ -111,7 +127,8 @@ function createSolutionStrategy(
     options?.onSolutionIndexChange?.(next);
   };
 
-  const validateMove: ValidateMoveFn = async (_fen, userMove, _remainingMateDepth) => {
+  const validateMove: ValidateMoveFn = async (_fen, userMove, remainingMateDepth) => {
+    void remainingMateDepth;
     const expected = solution[solutionIndex];
     const isCorrect =
       expected !== undefined &&
@@ -142,7 +159,7 @@ function createSolutionStrategy(
 
 export type { MoveRecord };
 
-export function usePuzzle() {
+export function usePuzzle(options: UsePuzzleOptions = {}) {
   const { state, updatePuzzle, setCurrentPuzzleId } = useAppState();
   const timer = useTimer();
   const stockfish = useStockfish();
@@ -189,6 +206,10 @@ export function usePuzzle() {
   timerRef.current = timer;
   const updatePuzzleRef = useRef(updatePuzzle);
   updatePuzzleRef.current = updatePuzzle;
+  const onPuzzleFailedRef = useRef(options.onPuzzleFailed);
+  onPuzzleFailedRef.current = options.onPuzzleFailed;
+  const onPuzzleCompleteRef = useRef(options.onPuzzleComplete);
+  onPuzzleCompleteRef.current = options.onPuzzleComplete;
 
   const clearHintState = useCallback(() => {
     hintRequestIdRef.current += 1;
@@ -294,6 +315,10 @@ export function usePuzzle() {
       puzzleId,
       buildFailureProgressUpdate(state.puzzles[puzzleId]),
     );
+    onPuzzleFailedRef.current?.({
+      puzzleId,
+      timeMs: timerRef.current.elapsedMs,
+    });
   }, [snapshot.isFailed, snapshot.puzzleData, state.puzzles]);
 
   useEffect(() => {
@@ -311,6 +336,11 @@ export function usePuzzle() {
       puzzleData.problemid,
       buildCompletionProgressUpdate(prevPuzzleState, wasSuccess, finalMs),
     );
+    onPuzzleCompleteRef.current?.({
+      puzzleId: puzzleData.problemid,
+      timeMs: finalMs,
+      success: wasSuccess,
+    });
   }, [snapshot.phase, snapshot.puzzleData, snapshot.isFailed, state.puzzles]);
 
   useEffect(() => {

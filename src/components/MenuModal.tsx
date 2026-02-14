@@ -1,66 +1,81 @@
-import { useState } from "react";
-import type { ThemePreference, ResolvedTheme } from "@/lib/theme";
+import { useEffect, useRef, useState } from "react";
 import type { StatsContentProps } from "@/components/Stats";
 import { StatsContent } from "@/components/Stats";
-import { SettingsContent } from "@/components/SettingsContent";
-import { SegmentedControl } from "@/components/ui/SegmentedControl";
-import { Button } from "@/components/ui/Button";
 import { Panel } from "@/components/ui/Panel";
 
-type MenuTab = "stats" | "settings";
-
-const TAB_SEGMENTS = [
-  { value: "stats", label: "Stats" },
-  { value: "settings", label: "Settings" },
-];
+const CLOSE_ANIMATION_MS = 150;
 
 interface MenuModalProps extends StatsContentProps {
   open: boolean;
   onClose: () => void;
-  themePreference: ThemePreference;
-  resolvedTheme: ResolvedTheme;
-  onSetThemePreference: (pref: ThemePreference) => void;
 }
 
 export function MenuModal({
   open,
   onClose,
-  themePreference,
-  resolvedTheme,
-  onSetThemePreference,
   ...statsProps
 }: MenuModalProps) {
-  const [activeTab, setActiveTab] = useState<MenuTab>("stats");
+  const [isMounted, setIsMounted] = useState(open);
+  const [isClosing, setIsClosing] = useState(false);
+  const overlayRef = useRef<HTMLDivElement | null>(null);
+  const restoreFocusRef = useRef<HTMLElement | null>(null);
 
-  if (!open) return null;
+  useEffect(() => {
+    if (open) {
+      setIsMounted(true);
+      setIsClosing(false);
+      return;
+    }
+    if (!isMounted) return;
+
+    setIsClosing(true);
+    const timeoutId = window.setTimeout(() => {
+      setIsMounted(false);
+      setIsClosing(false);
+    }, CLOSE_ANIMATION_MS);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [isMounted, open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const activeElement = document.activeElement;
+    restoreFocusRef.current = activeElement instanceof HTMLElement ? activeElement : null;
+
+    const frameId = window.requestAnimationFrame(() => {
+      overlayRef.current
+        ?.querySelector<HTMLButtonElement>("[data-close-focus]")
+        ?.focus();
+    });
+    return () => window.cancelAnimationFrame(frameId);
+  }, [open]);
+
+  useEffect(() => {
+    if (open || isMounted) return;
+    restoreFocusRef.current?.focus();
+    restoreFocusRef.current = null;
+  }, [isMounted, open]);
+
+  if (!isMounted) return null;
 
   return (
     <div
+      ref={overlayRef}
       className="ui-stats-overlay"
+      data-state={isClosing ? "closing" : "open"}
       onClick={(event) => event.target === event.currentTarget && onClose()}
+      onKeyDown={(event) => event.key === "Escape" && onClose()}
     >
-      <Panel className="ui-stats-modal" role="dialog" aria-modal="true" aria-label="Menu">
-        <header className="ui-menu-header">
-          <SegmentedControl
-            segments={TAB_SEGMENTS}
-            value={activeTab}
-            onChange={(val) => setActiveTab(val as MenuTab)}
-          />
-          <Button className="ui-stats-close-button" onClick={onClose}>
-            Close
-          </Button>
-        </header>
-
-        {activeTab === "stats" ? (
-          <StatsContent {...statsProps} />
-        ) : (
-          <SettingsContent
-            preference={themePreference}
-            resolvedTheme={resolvedTheme}
-            onSetPreference={onSetThemePreference}
-          />
-        )}
+      <Panel
+        className="ui-stats-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Stats"
+        data-state={isClosing ? "closing" : "open"}
+      >
+        <StatsContent onClose={onClose} {...statsProps} />
       </Panel>
     </div>
   );
 }
+

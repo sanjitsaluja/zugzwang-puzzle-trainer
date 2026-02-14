@@ -222,10 +222,15 @@
     align-items: center;
     display: inline-flex;
     flex: 1;
+    font-weight: 600;
     gap: var(--space-2);
     justify-content: center;
     min-height: 3rem;
     white-space: nowrap;
+  }
+
+  .ui-action-bar-center-btn:disabled {
+    opacity: 0.72;
   }
 
   .ui-metric-card {
@@ -1112,14 +1117,6 @@
     .ui-action-bar-center-btn {
       border-radius: var(--radius-md);
       min-height: 2.75rem;
-    }
-
-    .ui-action-bar-hint {
-      font-weight: 600;
-    }
-
-    .ui-action-bar-reset {
-      color: var(--color-fg-secondary);
     }
 
     .ui-stats-overlay {

@@ -39,11 +39,11 @@ export function Timer({ formatted, phase, isFailed }: TimerProps) {
 
   return (
     <Panel className="ui-panel-timer">
-      <div className="ui-timer-display" data-tone={timerTone}>
+      <h2 className="ui-timer-display" data-tone={timerTone}>
         <StopwatchIcon />
         {formatted}
-      </div>
-      <div className="ui-timer-label">{label}</div>
+      </h2>
+      <p className="ui-timer-label">{label}</p>
     </Panel>
   );
 }

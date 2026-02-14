@@ -11,6 +11,8 @@ const includeExtensions = new Set([".ts", ".tsx", ".css"]);
 
 const colorLiteralPattern = /(?<!&)#([0-9a-fA-F]{3,8})\b|\brgba?\(|\bhsla?\(/g;
 const pixelLiteralPattern = /\b\d+(\.\d+)?px\b/g;
+const typographyLiteralPattern = /\b(font-size|font-weight|letter-spacing|line-height)\s*:\s*([^;]+);/g;
+const typographyAllowedKeywords = new Set(["inherit", "initial", "unset", "normal"]);
 
 async function collectFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -49,15 +51,50 @@ function collectMatches(content, pattern, kind) {
   return matches;
 }
 
+function isTypographyTokenized(value) {
+  const normalized = value.replace(/\s*!important\s*$/i, "").trim();
+  const lower = normalized.toLowerCase();
+  if (typographyAllowedKeywords.has(lower)) return true;
+  return (
+    normalized.startsWith("var(") ||
+    normalized.startsWith("calc(") ||
+    normalized.startsWith("clamp(") ||
+    normalized.startsWith("min(") ||
+    normalized.startsWith("max(")
+  );
+}
+
+function collectTypographyMatches(content) {
+  const matches = [];
+  typographyLiteralPattern.lastIndex = 0;
+
+  let match = typographyLiteralPattern.exec(content);
+  while (match) {
+    const [, property, rawValue] = match;
+    if (!isTypographyTokenized(rawValue)) {
+      matches.push({
+        kind: "typography",
+        value: `${property}: ${rawValue.trim()}`,
+        line: lineNumberFromIndex(content, match.index),
+      });
+    }
+    match = typographyLiteralPattern.exec(content);
+  }
+
+  return matches;
+}
+
 const files = await collectFiles(srcDir);
 const violations = [];
 
 for (const file of files) {
   if (allowedLiteralFiles.has(file)) continue;
   const content = await readFile(file, "utf8");
+  const typographyViolations = file.endsWith(".css") ? collectTypographyMatches(content) : [];
   const fileViolations = [
     ...collectMatches(content, colorLiteralPattern, "color"),
     ...collectMatches(content, pixelLiteralPattern, "size"),
+    ...typographyViolations,
   ];
   for (const violation of fileViolations) {
     violations.push({

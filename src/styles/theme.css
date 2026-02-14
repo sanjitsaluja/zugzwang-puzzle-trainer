@@ -19,7 +19,7 @@
   body {
     background: var(--color-bg-primary);
     color: var(--color-fg-primary);
-    font-family: var(--font-family-sans);
+    font-family: var(--type-family-ui);
     -webkit-font-smoothing: antialiased;
   }
 }
@@ -28,7 +28,7 @@
   .ui-app-status {
     align-items: center;
     display: flex;
-    font-size: var(--text-size-body-lg);
+    font-size: var(--type-role-app-status-size);
     justify-content: center;
     min-height: 100%;
   }
@@ -80,10 +80,10 @@
 
   .ui-header-logo {
     color: var(--color-fg-muted);
-    font-size: var(--text-size-heading-md);
-    font-weight: 700;
+    font-size: var(--type-role-brand-size);
+    font-weight: var(--type-role-brand-weight);
     justify-self: start;
-    letter-spacing: 0.02em;
+    letter-spacing: var(--type-role-brand-tracking);
     white-space: nowrap;
   }
 
@@ -98,8 +98,8 @@
     align-items: center;
     color: var(--color-accent-info);
     display: inline-flex;
-    font-size: var(--text-size-heading-sm);
-    font-weight: 700;
+    font-size: var(--type-role-streak-size);
+    font-weight: var(--type-role-streak-weight);
     gap: var(--space-2);
     white-space: nowrap;
   }
@@ -126,9 +126,9 @@
   .ui-layout-source {
     bottom: calc(var(--space-6) + 5.1rem);
     color: var(--color-fg-secondary);
-    font-size: var(--text-size-body);
-    font-weight: 500;
-    line-height: 1;
+    font-size: var(--type-role-source-size);
+    font-weight: var(--type-role-source-weight);
+    line-height: var(--type-role-source-leading);
     position: fixed;
     right: var(--space-6);
     text-align: right;
@@ -260,8 +260,8 @@
 
   .ui-label {
     color: var(--color-fg-secondary);
-    font-size: var(--text-size-label);
-    letter-spacing: var(--tracking-table);
+    font-size: var(--type-role-label-size);
+    letter-spacing: var(--type-role-label-compact-tracking);
     text-transform: uppercase;
   }
 
@@ -270,7 +270,8 @@
     border: var(--border-width-1) solid var(--color-border-default);
     border-radius: var(--radius-sm);
     color: var(--color-fg-primary);
-    font-size: var(--text-size-body);
+    font-size: var(--type-role-button-size);
+    font-weight: var(--type-role-button-weight);
     padding: var(--space-2_5) var(--space-5);
     transition: background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard),
       opacity var(--duration-fast) var(--ease-standard);
@@ -289,7 +290,7 @@
     background: var(--color-bg-button-active);
     border-color: var(--color-bg-button-active);
     color: var(--color-fg-inverse);
-    font-weight: 600;
+    font-weight: var(--type-role-button-strong-weight);
   }
 
   .ui-button[data-variant="primary"]:hover:not(:disabled) {
@@ -332,7 +333,7 @@
     align-items: center;
     display: inline-flex;
     flex: 0 0 auto;
-    font-size: var(--text-size-heading-sm);
+    font-size: var(--type-role-action-nav-size);
     gap: var(--space-2);
     height: 2.875rem;
     justify-content: center;
@@ -348,7 +349,7 @@
   .ui-action-bar-center-btn {
     align-items: center;
     display: inline-flex;
-    font-weight: 600;
+    font-weight: var(--type-role-button-strong-weight);
     gap: var(--space-2);
     justify-content: center;
     min-height: 2.875rem;
@@ -371,10 +372,10 @@
     background: var(--color-bg-panel-section);
     border-radius: var(--radius-sm);
     color: var(--color-fg-muted);
-    font-family: var(--font-family-mono);
-    font-size: var(--text-size-label);
-    font-weight: 600;
-    line-height: 1.2;
+    font-family: var(--type-family-data);
+    font-size: var(--type-role-keycap-size);
+    font-weight: var(--type-role-keycap-weight);
+    line-height: var(--type-role-keycap-leading);
     padding: 0.15rem 0.4rem;
   }
 
@@ -394,31 +395,31 @@
 
   .ui-metric-value {
     color: var(--color-fg-primary);
-    font-family: var(--font-family-mono);
-    font-size: var(--text-size-heading-md);
+    font-family: var(--type-family-data);
+    font-size: var(--type-role-metric-size);
   }
 
   .ui-timer-display {
-    font-family: var(--font-family-mono);
-    font-weight: 700;
-    letter-spacing: var(--tracking-timer);
-    line-height: var(--leading-tight);
+    font-family: var(--type-family-data);
+    font-weight: var(--type-role-timer-weight);
+    letter-spacing: var(--type-role-timer-tracking);
+    line-height: var(--type-role-timer-leading);
     transition: color var(--duration-moderate) var(--ease-standard), font-size var(--duration-moderate) var(--ease-standard);
   }
 
   .ui-timer-display[data-tone="default"] {
     color: var(--color-accent-success);
-    font-size: var(--text-size-display-timer);
+    font-size: var(--type-role-timer-size);
   }
 
   .ui-timer-display[data-tone="success"] {
     color: var(--color-accent-success);
-    font-size: var(--text-size-display-timer);
+    font-size: var(--type-role-timer-size);
   }
 
   .ui-timer-display[data-tone="danger"] {
     color: var(--color-accent-danger);
-    font-size: var(--text-size-display-timer);
+    font-size: var(--type-role-timer-size);
   }
 
   .ui-timer-label {
@@ -469,7 +470,7 @@
     display: flex;
     flex: 1;
     flex-direction: column;
-    font-family: var(--font-family-mono);
+    font-family: var(--type-family-data);
     min-height: 0;
   }
 
@@ -490,11 +491,11 @@
     color: var(--color-stats-close-fg);
     cursor: pointer;
     display: inline-flex;
-    font-family: var(--font-family-mono);
-    font-size: 2rem;
+    font-family: var(--type-family-data);
+    font-size: var(--type-role-panel-close-icon-size);
     height: 2.625rem;
     justify-content: center;
-    line-height: 1;
+    line-height: var(--type-role-panel-close-icon-leading);
     transition: color var(--duration-fast) var(--ease-standard),
       background var(--duration-fast) var(--ease-standard);
     width: 2.625rem;
@@ -507,10 +508,10 @@
 
   .ui-menu-title {
     color: var(--color-stats-title);
-    font-size: 2rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    line-height: 1;
+    font-size: var(--type-role-panel-title-size);
+    font-weight: var(--type-role-panel-title-weight);
+    letter-spacing: var(--type-role-panel-title-tracking);
+    line-height: var(--type-role-panel-title-leading);
     text-align: center;
   }
 
@@ -535,7 +536,7 @@
     display: flex;
     flex: 1;
     flex-direction: column;
-    font-family: var(--font-family-mono);
+    font-family: var(--type-family-data);
     min-height: 0;
   }
 
@@ -555,10 +556,10 @@
 
   .ui-stats-title {
     color: var(--color-stats-title);
-    font-size: 2rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    line-height: 1;
+    font-size: var(--type-role-panel-title-size);
+    font-weight: var(--type-role-panel-title-weight);
+    letter-spacing: var(--type-role-panel-title-tracking);
+    line-height: var(--type-role-panel-title-leading);
   }
 
   .ui-stats-close-button {
@@ -569,8 +570,8 @@
     color: var(--color-stats-close-fg);
     cursor: pointer;
     display: inline-flex;
-    font-family: var(--font-family-mono);
-    font-size: 1.05rem;
+    font-family: var(--type-family-data);
+    font-size: var(--type-role-panel-control-size);
     justify-content: center;
     min-width: 7.5rem;
     padding: 0.8rem 1.2rem;
@@ -608,9 +609,9 @@
 
   .ui-stats-quick-value {
     color: var(--color-stats-quick-value);
-    font-size: 2.05rem;
-    font-weight: 700;
-    line-height: 1;
+    font-size: var(--type-role-panel-quick-value-size);
+    font-weight: var(--type-role-panel-quick-value-weight);
+    line-height: var(--type-role-panel-quick-value-leading);
     min-height: 2.3rem;
     text-wrap: nowrap;
   }
@@ -621,8 +622,8 @@
 
   .ui-stats-quick-label {
     color: var(--color-stats-quick-label);
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
+    font-size: var(--type-role-panel-quick-label-size);
+    letter-spacing: var(--type-role-panel-quick-label-tracking);
     text-transform: uppercase;
   }
 
@@ -641,8 +642,8 @@
     color: var(--color-stats-tab-fg);
     cursor: pointer;
     display: inline-flex;
-    font-family: var(--font-family-mono);
-    font-size: 1.05rem;
+    font-family: var(--type-family-data);
+    font-size: var(--type-role-panel-tab-size);
     gap: var(--space-3);
     justify-content: center;
     padding: 0.95rem var(--space-4);
@@ -661,8 +662,8 @@
     border-radius: var(--radius-full);
     color: var(--color-stats-badge-fg);
     display: inline-flex;
-    font-size: 0.95rem;
-    font-weight: 700;
+    font-size: var(--type-role-panel-badge-size);
+    font-weight: var(--type-role-panel-badge-weight);
     justify-content: center;
     min-height: 2rem;
     min-width: 2rem;
@@ -688,8 +689,8 @@
 
   .ui-stats-retry-hint {
     color: var(--color-stats-retry-hint);
-    font-size: 0.95rem;
-    line-height: 1.4;
+    font-size: var(--type-role-panel-support-size);
+    line-height: var(--type-role-panel-support-leading);
   }
 
   .ui-stats-retry-list {
@@ -723,10 +724,10 @@
   }
 
   .ui-stats-retry-title {
-    font-size: 1.1rem;
-    font-weight: 500;
+    font-size: var(--type-role-panel-card-title-size);
+    font-weight: var(--type-role-panel-card-title-weight);
     grid-area: title;
-    line-height: 1.2;
+    line-height: var(--type-role-panel-card-title-leading);
   }
 
   .ui-stats-retry-meta {
@@ -734,14 +735,14 @@
     color: var(--color-stats-retry-meta);
     display: inline-flex;
     flex-wrap: wrap;
-    font-size: 0.95rem;
+    font-size: var(--type-role-panel-card-meta-size);
     gap: 0.55rem;
     grid-area: meta;
   }
 
   .ui-stats-retry-arrow {
     color: var(--color-stats-retry-arrow);
-    font-size: 2rem;
+    font-size: var(--type-role-panel-arrow-size);
     grid-area: arrow;
     justify-self: end;
     margin-left: var(--space-3);
@@ -749,8 +750,8 @@
 
   .ui-stats-mate-badge {
     border-radius: 0.45rem;
-    font-size: 0.9rem;
-    font-weight: 600;
+    font-size: var(--type-role-panel-pill-size);
+    font-weight: var(--type-role-panel-pill-weight);
     padding: 0.25rem 0.65rem;
     white-space: nowrap;
   }
@@ -777,19 +778,19 @@
   }
 
   .ui-stats-empty-emoji {
-    font-size: 2.5rem;
-    line-height: 1;
+    font-size: var(--type-role-panel-empty-icon-size);
+    line-height: var(--type-role-panel-empty-icon-leading);
   }
 
   .ui-stats-empty-title {
     color: var(--color-stats-empty-title);
-    font-size: 1.2rem;
-    font-weight: 600;
+    font-size: var(--type-role-panel-empty-title-size);
+    font-weight: var(--type-role-panel-empty-title-weight);
   }
 
   .ui-stats-empty-subtitle {
     color: var(--color-stats-empty-subtitle);
-    font-size: 1rem;
+    font-size: var(--type-role-panel-empty-subtitle-size);
   }
 
   .ui-stats-progress-tab {
@@ -812,15 +813,15 @@
 
   .ui-stats-section-title {
     color: var(--color-stats-section-title);
-    font-size: 1.05rem;
-    font-weight: 700;
-    line-height: 1.2;
+    font-size: var(--type-role-panel-section-title-size);
+    font-weight: var(--type-role-panel-section-title-weight);
+    line-height: var(--type-role-panel-section-title-leading);
   }
 
   .ui-stats-section-subtitle {
     color: var(--color-stats-section-subtitle);
-    font-size: 1rem;
-    line-height: 1.3;
+    font-size: var(--type-role-panel-section-subtitle-size);
+    line-height: var(--type-role-panel-section-subtitle-leading);
   }
 
   .ui-stats-overall-card {
@@ -841,13 +842,13 @@
 
   .ui-stats-overall-position {
     color: var(--color-stats-overall-position);
-    font-size: 1.2rem;
+    font-size: var(--type-role-panel-overall-size);
   }
 
   .ui-stats-overall-percent {
     color: var(--color-stats-overall-percent);
-    font-size: 1.2rem;
-    font-weight: 600;
+    font-size: var(--type-role-panel-overall-size);
+    font-weight: var(--type-role-panel-overall-weight);
   }
 
   .ui-stats-progress-track {
@@ -866,8 +867,8 @@
 
   .ui-stats-overall-meta {
     color: var(--color-stats-overall-meta);
-    font-size: 1.1rem;
-    line-height: 1.3;
+    font-size: var(--type-role-panel-overall-meta-size);
+    line-height: var(--type-role-panel-overall-meta-leading);
   }
 
   .ui-stats-speed-list {
@@ -896,7 +897,7 @@
 
   .ui-stats-speed-count {
     color: var(--color-stats-speed-count);
-    font-size: 1.2rem;
+    font-size: var(--type-role-panel-overall-size);
   }
 
   .ui-stats-speed-summary {
@@ -909,15 +910,15 @@
 
   .ui-stats-speed-time {
     color: var(--color-stats-speed-time);
-    font-size: 1.9rem;
-    font-weight: 700;
-    line-height: 1;
+    font-size: var(--type-role-panel-speed-time-size);
+    font-weight: var(--type-role-panel-speed-time-weight);
+    line-height: var(--type-role-panel-speed-time-leading);
   }
 
   .ui-stats-speed-trend {
-    font-size: 1rem;
-    font-weight: 600;
-    line-height: 1.2;
+    font-size: var(--type-role-panel-speed-trend-size);
+    font-weight: var(--type-role-panel-speed-trend-weight);
+    line-height: var(--type-role-panel-speed-trend-leading);
   }
 
   .ui-stats-speed-trend[data-tone="up"] {
@@ -930,8 +931,8 @@
 
   .ui-stats-speed-trend-muted {
     color: var(--color-stats-speed-muted);
-    font-size: 1rem;
-    line-height: 1.2;
+    font-size: var(--type-role-panel-speed-trend-size);
+    line-height: var(--type-role-panel-speed-trend-leading);
   }
 
   .ui-stats-improvement-callout {
@@ -946,14 +947,14 @@
 
   .ui-stats-improvement-title {
     color: var(--color-stats-callout-title);
-    font-size: 1.35rem;
-    line-height: 1.2;
+    font-size: var(--type-role-panel-callout-title-size);
+    line-height: var(--type-role-panel-callout-title-leading);
   }
 
   .ui-stats-improvement-copy {
     color: var(--color-stats-callout-copy);
-    font-size: 1.2rem;
-    line-height: 1.45;
+    font-size: var(--type-role-panel-callout-copy-size);
+    line-height: var(--type-role-panel-callout-copy-leading);
   }
 
   .ui-stats-improvement-copy strong {
@@ -973,8 +974,8 @@
 
   .ui-move-list-title {
     color: var(--color-fg-muted);
-    font-size: var(--text-size-label);
-    letter-spacing: var(--tracking-label);
+    font-size: var(--type-role-label-size);
+    letter-spacing: var(--type-role-label-tracking);
     margin-bottom: var(--space-1);
   }
 
@@ -990,8 +991,8 @@
   .ui-move-row {
     align-items: center;
     display: flex;
-    font-family: var(--font-family-mono);
-    font-size: var(--text-size-body);
+    font-family: var(--type-family-data);
+    font-size: var(--type-role-move-row-size);
     gap: var(--space-2);
   }
 
@@ -1008,7 +1009,7 @@
     border: var(--border-width-1) dashed var(--color-border-default);
     border-radius: var(--radius-xs);
     color: var(--color-fg-muted);
-    font-size: var(--text-size-body-sm);
+    font-size: var(--type-role-move-placeholder-size);
     font-style: italic;
     padding: var(--space-0_5) var(--space-2);
   }
@@ -1037,23 +1038,23 @@
   }
 
   .ui-puzzle-hash {
-    font-family: var(--font-family-mono);
-    font-size: var(--text-size-heading-lg);
-    font-weight: 700;
-    line-height: 1;
+    font-family: var(--type-family-data);
+    font-size: var(--type-role-puzzle-id-size);
+    font-weight: var(--type-role-puzzle-id-weight);
+    line-height: var(--type-role-puzzle-id-leading);
   }
 
   .ui-puzzle-number {
-    font-family: var(--font-family-mono);
-    font-size: var(--text-size-heading-lg);
-    font-weight: 700;
-    line-height: 1;
+    font-family: var(--type-family-data);
+    font-size: var(--type-role-puzzle-id-size);
+    font-weight: var(--type-role-puzzle-id-weight);
+    line-height: var(--type-role-puzzle-id-leading);
   }
 
   .ui-puzzle-total {
     color: var(--color-fg-secondary);
-    font-size: var(--text-size-body-lg);
-    font-weight: 400;
+    font-size: var(--type-role-puzzle-total-size);
+    font-weight: var(--type-role-puzzle-total-weight);
   }
 
   .ui-puzzle-source {
@@ -1074,10 +1075,10 @@
     border-radius: var(--radius-sm);
     color: var(--color-fg-inverse);
     display: inline-flex;
-    font-size: var(--text-size-label);
-    font-weight: 700;
-    letter-spacing: var(--tracking-label);
-    line-height: 1;
+    font-size: var(--type-role-puzzle-pill-size);
+    font-weight: var(--type-role-puzzle-pill-weight);
+    letter-spacing: var(--type-role-puzzle-pill-tracking);
+    line-height: var(--type-role-puzzle-pill-leading);
     padding: 0.55rem var(--space-3);
     text-transform: uppercase;
     white-space: nowrap;
@@ -1087,8 +1088,8 @@
     align-items: center;
     color: var(--color-fg-primary);
     display: inline-flex;
-    font-size: var(--text-size-heading-sm);
-    font-weight: 600;
+    font-size: var(--type-role-puzzle-meta-size);
+    font-weight: var(--type-role-puzzle-meta-weight);
     gap: var(--space-2);
     white-space: nowrap;
   }
@@ -1117,8 +1118,8 @@
 
   .ui-puzzle-status {
     display: inline;
-    font-size: var(--text-size-heading-sm);
-    font-weight: 600;
+    font-size: var(--type-role-puzzle-status-size);
+    font-weight: var(--type-role-puzzle-status-weight);
     white-space: nowrap;
   }
 
@@ -1187,9 +1188,9 @@
     border-radius: var(--radius-xs);
     color: var(--color-fg-secondary);
     cursor: pointer;
-    font-family: var(--font-family-mono);
-    font-size: var(--text-size-body);
-    font-weight: 500;
+    font-family: var(--type-family-data);
+    font-size: var(--type-role-segment-size);
+    font-weight: var(--type-role-segment-weight);
     padding: var(--space-1) var(--space-4);
     position: relative;
     transition: background var(--duration-fast) var(--ease-standard),
@@ -1199,7 +1200,7 @@
 
   .ui-segmented-control-item[data-active] {
     color: var(--color-fg-primary);
-    font-weight: 600;
+    font-weight: var(--type-role-segment-active-weight);
   }
 
   .ui-settings-root {
@@ -1237,15 +1238,15 @@
 
   .ui-settings-section-title {
     color: var(--color-stats-section-title);
-    font-size: 1.15rem;
-    font-weight: 700;
-    line-height: 1.2;
+    font-size: var(--type-role-panel-section-title-size);
+    font-weight: var(--type-role-panel-section-title-weight);
+    line-height: var(--type-role-panel-section-title-leading);
   }
 
   .ui-settings-section-subtitle {
     color: var(--color-stats-section-subtitle);
-    font-size: 0.95rem;
-    line-height: 1.4;
+    font-size: var(--type-role-panel-section-subtitle-size);
+    line-height: var(--type-role-panel-section-subtitle-leading);
   }
 
   .ui-settings-control {
@@ -1268,16 +1269,16 @@
 
   .ui-settings-control-title {
     color: var(--color-stats-card-fg);
-    font-size: 0.98rem;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-    line-height: 1.2;
+    font-size: var(--type-role-settings-control-title-size);
+    font-weight: var(--type-role-settings-control-title-weight);
+    letter-spacing: var(--type-role-settings-control-title-tracking);
+    line-height: var(--type-role-settings-control-title-leading);
   }
 
   .ui-settings-control-subtitle {
     color: var(--color-stats-section-subtitle);
-    font-size: 0.86rem;
-    line-height: 1.35;
+    font-size: var(--type-role-settings-control-subtitle-size);
+    line-height: var(--type-role-settings-control-subtitle-leading);
   }
 
   .ui-settings-chip-row {
@@ -1294,10 +1295,10 @@
     color: var(--color-stats-card-fg);
     cursor: pointer;
     display: inline-flex;
-    font-family: var(--font-family-mono);
-    font-size: 0.82rem;
+    font-family: var(--type-family-data);
+    font-size: var(--type-role-settings-chip-size);
     gap: var(--space-2);
-    line-height: 1;
+    line-height: var(--type-role-settings-chip-leading);
     min-height: 2rem;
     padding: 0.45rem 0.78rem;
     text-transform: lowercase;
@@ -1312,7 +1313,7 @@
     border-color: var(--color-settings-chip-active-border);
     box-shadow: 0 0 0 0.12rem var(--color-settings-chip-active-shadow);
     color: var(--color-stats-tab-fg-active);
-    font-weight: 700;
+    font-weight: var(--type-role-settings-chip-active-weight);
   }
 
   .ui-settings-chip:hover {
@@ -1334,12 +1335,12 @@
     border-radius: 50%;
     color: var(--color-settings-chip-check-fg);
     display: inline-flex;
-    font-family: var(--font-family-mono);
-    font-size: 0.66rem;
-    font-weight: 700;
+    font-family: var(--type-family-data);
+    font-size: var(--type-role-settings-chip-check-size);
+    font-weight: var(--type-role-settings-chip-check-weight);
     height: 1rem;
     justify-content: center;
-    line-height: 1;
+    line-height: var(--type-role-settings-chip-check-leading);
     min-width: 1rem;
   }
 
@@ -1417,10 +1418,10 @@
 
   .ui-settings-slider-value {
     color: var(--color-stats-card-fg);
-    font-family: var(--font-family-mono);
-    font-size: 0.9rem;
-    font-weight: 600;
-    line-height: 1;
+    font-family: var(--type-family-data);
+    font-size: var(--type-role-settings-slider-size);
+    font-weight: var(--type-role-settings-slider-weight);
+    line-height: var(--type-role-settings-slider-leading);
     min-width: 3.6rem;
     text-align: right;
   }
@@ -1470,15 +1471,15 @@
 
   .ui-settings-shell-title {
     color: var(--color-stats-section-title);
-    font-size: 1.15rem;
-    font-weight: 700;
-    line-height: 1.2;
+    font-size: var(--type-role-settings-shell-title-size);
+    font-weight: var(--type-role-settings-shell-title-weight);
+    line-height: var(--type-role-settings-shell-title-leading);
   }
 
   .ui-settings-shell-subtitle {
     color: var(--color-stats-section-subtitle);
-    font-size: 1rem;
-    line-height: 1.45;
+    font-size: var(--type-role-settings-shell-subtitle-size);
+    line-height: var(--type-role-settings-shell-subtitle-leading);
   }
 
   .ui-toast {
@@ -1487,7 +1488,7 @@
     border: var(--border-width-1) solid var(--color-border-default);
     border-radius: var(--radius-md);
     color: var(--color-fg-primary);
-    font-size: var(--text-size-body-sm);
+    font-size: var(--type-role-toast-size);
     padding: var(--space-2_5) var(--space-3);
   }
 
@@ -1533,8 +1534,6 @@
 
     .ui-header-logo {
       display: block;
-      font-size: var(--text-size-body);
-      letter-spacing: 0;
     }
 
     .ui-header-right {
@@ -1612,12 +1611,6 @@
       display: none;
     }
 
-    .ui-timer-display[data-tone="default"],
-    .ui-timer-display[data-tone="success"],
-    .ui-timer-display[data-tone="danger"] {
-      font-size: var(--text-size-heading-sm);
-    }
-
     .ui-timer-display[data-tone="default"] {
       color: var(--color-fg-primary);
     }
@@ -1625,10 +1618,10 @@
     .ui-timer-label {
       color: var(--color-fg-secondary);
       display: block;
-      font-size: var(--text-size-body-sm);
-      font-weight: 500;
-      letter-spacing: 0;
-      line-height: 1;
+      font-size: var(--type-role-timer-label-size);
+      font-weight: var(--type-role-timer-label-weight);
+      letter-spacing: var(--type-role-timer-label-tracking);
+      line-height: var(--type-role-timer-label-leading);
       text-transform: lowercase;
     }
 
@@ -1652,8 +1645,6 @@
     }
 
     .ui-puzzle-number {
-      font-size: var(--text-size-heading-sm);
-      font-weight: 700;
       white-space: nowrap;
     }
 
@@ -1664,7 +1655,6 @@
 
     .ui-puzzle-total {
       display: inline;
-      font-size: var(--text-size-heading-md);
     }
 
     .ui-puzzle-source {
@@ -1684,9 +1674,6 @@
       border-radius: 0;
       color: var(--color-fg-secondary);
       display: inline;
-      font-size: var(--text-size-body-sm);
-      font-weight: 600;
-      letter-spacing: 0;
       padding: 0;
       text-transform: none;
     }
@@ -1694,8 +1681,6 @@
     .ui-puzzle-side {
       color: var(--color-fg-secondary);
       display: inline-flex;
-      font-size: var(--text-size-body-sm);
-      font-weight: 500;
       gap: var(--space-1);
     }
 
@@ -1717,8 +1702,6 @@
 
     .ui-puzzle-status {
       display: inline;
-      font-size: var(--text-size-body-sm);
-      font-weight: 600;
     }
 
     .ui-puzzle-side::before {
@@ -1828,12 +1811,7 @@
       padding: var(--space-4);
     }
 
-    .ui-menu-title {
-      font-size: 1.65rem;
-    }
-
     .ui-menu-close-button {
-      font-size: 1.75rem;
       height: 2.25rem;
       width: 2.25rem;
     }
@@ -1887,24 +1865,11 @@
     }
 
     .ui-stats-quick-value {
-      font-size: 1.75rem;
       min-height: 2rem;
     }
 
     .ui-stats-retry-card {
       padding: var(--space-3) var(--space-3);
-    }
-
-    .ui-stats-overall-position,
-    .ui-stats-overall-percent,
-    .ui-stats-speed-count,
-    .ui-stats-overall-meta,
-    .ui-stats-improvement-copy {
-      font-size: 1rem;
-    }
-
-    .ui-stats-speed-time {
-      font-size: 1.6rem;
     }
 
   }

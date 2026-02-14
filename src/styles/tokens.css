@@ -2,24 +2,171 @@
   --font-family-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-family-mono: "JetBrains Mono", "SF Mono", "Fira Code", "Consolas", monospace;
 
-  --text-size-label: 0.7rem;
-  --text-size-body-sm: 0.85rem;
-  --text-size-body: 0.9rem;
-  --text-size-body-lg: 1.125rem;
-  --text-size-heading-sm: 1rem;
-  --text-size-heading-md: 1.1rem;
-  --text-size-heading-lg: 1.6rem;
-  --text-size-display: 2rem;
-  --text-size-display-timer: 2.5rem;
-  --text-size-display-timer-complete: 3rem;
-  --text-size-display-timer-mobile: 2rem;
-  --text-size-display-timer-mobile-complete: 2.25rem;
+  /*
+   * Typography system (3 tiers):
+   * - body: default copy and control text
+   * - heading: section and panel titles
+   * - display: glance-priority numeric emphasis (e.g., timer)
+   * Default to body unless content needs stronger hierarchy.
+   */
+  --type-scale-1: 0.95rem;
+  --type-scale-2: 1.15rem;
+  --type-scale-3: 1.55rem;
+  --type-scale-4: var(--type-scale-3);
+  --type-scale-5: var(--type-scale-3);
+  --type-scale-6: var(--type-scale-3);
+
+  /* Consolidated semantic size tiers */
+  --type-size-body: var(--type-scale-1);
+  --type-size-heading: var(--type-scale-2);
+  --type-size-display: var(--type-scale-3);
+
+  /* Primitive type rhythm */
+  --type-weight-regular: 400;
+  --type-weight-medium: 500;
+  --type-weight-semibold: 600;
+  --type-weight-bold: 700;
+  --type-family-ui: var(--font-family-sans);
+  --type-family-data: var(--type-family-ui);
+  --type-leading-tight: 1;
+  --type-leading-snug: 1.2;
+  --type-leading-normal: 1.3;
+  --type-leading-comfy: 1.35;
+  --type-leading-relaxed: 1.4;
+  --type-leading-loose: 1.45;
+  --type-tracking-none: 0;
+  --type-tracking-tight: 0.01em;
+  --type-tracking-brand: 0.02em;
+  --type-tracking-label: 0.04em;
+  --type-tracking-table: 0.02em;
+  --type-tracking-timer: 0.05em;
 
   --leading-tight: 1.2;
   --tracking-label: 0.1em;
   --tracking-section: 0.08em;
   --tracking-table: 0.05em;
   --tracking-timer: 0.05em;
+
+  /* Semantic typography roles */
+  --type-role-app-status-size: var(--type-size-body);
+  --type-role-brand-size: var(--type-size-body);
+  --type-role-brand-weight: var(--type-weight-semibold);
+  --type-role-brand-tracking: var(--type-tracking-none);
+  --type-role-streak-size: var(--type-size-body);
+  --type-role-streak-weight: var(--type-weight-semibold);
+  --type-role-source-size: var(--type-size-body);
+  --type-role-source-weight: var(--type-weight-medium);
+  --type-role-source-leading: var(--type-leading-tight);
+  --type-role-label-size: var(--type-size-body);
+  --type-role-label-weight: var(--type-weight-medium);
+  --type-role-label-tracking: var(--type-tracking-label);
+  --type-role-label-compact-tracking: var(--type-tracking-table);
+  --type-role-button-size: var(--type-size-body);
+  --type-role-button-weight: var(--type-weight-medium);
+  --type-role-button-strong-weight: var(--type-weight-semibold);
+  --type-role-action-nav-size: var(--type-size-body);
+  --type-role-keycap-size: var(--type-size-body);
+  --type-role-keycap-weight: var(--type-weight-semibold);
+  --type-role-keycap-leading: var(--type-leading-snug);
+  --type-role-metric-size: var(--type-size-body);
+  --type-role-timer-size: var(--type-size-display);
+  --type-role-timer-weight: var(--type-weight-semibold);
+  --type-role-timer-tracking: var(--type-tracking-none);
+  --type-role-timer-leading: var(--type-leading-snug);
+  --type-role-timer-label-size: var(--type-size-body);
+  --type-role-timer-label-weight: var(--type-weight-medium);
+  --type-role-timer-label-tracking: var(--type-tracking-none);
+  --type-role-timer-label-leading: var(--type-leading-tight);
+
+  --type-role-panel-title-size: var(--type-size-heading);
+  --type-role-panel-title-weight: var(--type-weight-semibold);
+  --type-role-panel-title-tracking: var(--type-tracking-none);
+  --type-role-panel-title-leading: var(--type-leading-tight);
+  --type-role-panel-close-icon-size: var(--type-size-heading);
+  --type-role-panel-close-icon-leading: var(--type-leading-tight);
+  --type-role-panel-control-size: var(--type-size-body);
+  --type-role-panel-tab-size: var(--type-size-body);
+  --type-role-panel-badge-size: var(--type-size-body);
+  --type-role-panel-badge-weight: var(--type-weight-semibold);
+  --type-role-panel-support-size: var(--type-size-body);
+  --type-role-panel-support-leading: var(--type-leading-relaxed);
+  --type-role-panel-card-title-size: var(--type-size-body);
+  --type-role-panel-card-title-weight: var(--type-weight-semibold);
+  --type-role-panel-card-title-leading: var(--type-leading-snug);
+  --type-role-panel-card-meta-size: var(--type-size-body);
+  --type-role-panel-arrow-size: var(--type-size-heading);
+  --type-role-panel-pill-size: var(--type-size-body);
+  --type-role-panel-pill-weight: var(--type-weight-semibold);
+  --type-role-panel-empty-icon-size: var(--type-size-heading);
+  --type-role-panel-empty-icon-leading: var(--type-leading-tight);
+  --type-role-panel-empty-title-size: var(--type-size-body);
+  --type-role-panel-empty-title-weight: var(--type-weight-semibold);
+  --type-role-panel-empty-subtitle-size: var(--type-size-body);
+  --type-role-panel-section-title-size: var(--type-size-body);
+  --type-role-panel-section-title-weight: var(--type-weight-semibold);
+  --type-role-panel-section-title-leading: var(--type-leading-snug);
+  --type-role-panel-section-subtitle-size: var(--type-size-body);
+  --type-role-panel-section-subtitle-leading: var(--type-leading-normal);
+  --type-role-panel-overall-size: var(--type-size-body);
+  --type-role-panel-overall-weight: var(--type-weight-semibold);
+  --type-role-panel-overall-meta-size: var(--type-size-body);
+  --type-role-panel-overall-meta-leading: var(--type-leading-normal);
+  --type-role-panel-speed-time-size: var(--type-size-display);
+  --type-role-panel-speed-time-weight: var(--type-weight-semibold);
+  --type-role-panel-speed-time-leading: var(--type-leading-tight);
+  --type-role-panel-speed-trend-size: var(--type-size-body);
+  --type-role-panel-speed-trend-weight: var(--type-weight-semibold);
+  --type-role-panel-speed-trend-leading: var(--type-leading-snug);
+  --type-role-panel-callout-title-size: var(--type-size-body);
+  --type-role-panel-callout-title-leading: var(--type-leading-snug);
+  --type-role-panel-callout-copy-size: var(--type-size-body);
+  --type-role-panel-callout-copy-leading: var(--type-leading-loose);
+  --type-role-panel-quick-value-size: var(--type-size-display);
+  --type-role-panel-quick-value-weight: var(--type-weight-semibold);
+  --type-role-panel-quick-value-leading: var(--type-leading-tight);
+  --type-role-panel-quick-label-size: var(--type-size-body);
+  --type-role-panel-quick-label-tracking: var(--type-tracking-label);
+
+  --type-role-move-row-size: var(--type-size-body);
+  --type-role-move-placeholder-size: var(--type-size-body);
+  --type-role-puzzle-id-size: var(--type-size-heading);
+  --type-role-puzzle-id-weight: var(--type-weight-semibold);
+  --type-role-puzzle-id-leading: var(--type-leading-tight);
+  --type-role-puzzle-total-size: var(--type-size-body);
+  --type-role-puzzle-total-weight: var(--type-weight-regular);
+  --type-role-puzzle-pill-size: var(--type-size-body);
+  --type-role-puzzle-pill-weight: var(--type-weight-semibold);
+  --type-role-puzzle-pill-tracking: var(--type-tracking-label);
+  --type-role-puzzle-pill-leading: var(--type-leading-tight);
+  --type-role-puzzle-meta-size: var(--type-size-body);
+  --type-role-puzzle-meta-weight: var(--type-weight-semibold);
+  --type-role-puzzle-status-size: var(--type-size-body);
+  --type-role-puzzle-status-weight: var(--type-weight-semibold);
+  --type-role-segment-size: var(--type-size-body);
+  --type-role-segment-weight: var(--type-weight-medium);
+  --type-role-segment-active-weight: var(--type-weight-semibold);
+
+  --type-role-settings-control-title-size: var(--type-size-body);
+  --type-role-settings-control-title-weight: var(--type-weight-semibold);
+  --type-role-settings-control-title-tracking: var(--type-tracking-none);
+  --type-role-settings-control-title-leading: var(--type-leading-snug);
+  --type-role-settings-control-subtitle-size: var(--type-size-body);
+  --type-role-settings-control-subtitle-leading: var(--type-leading-comfy);
+  --type-role-settings-chip-size: var(--type-size-body);
+  --type-role-settings-chip-leading: var(--type-leading-tight);
+  --type-role-settings-chip-active-weight: var(--type-weight-semibold);
+  --type-role-settings-chip-check-size: var(--type-size-body);
+  --type-role-settings-chip-check-weight: var(--type-weight-bold);
+  --type-role-settings-chip-check-leading: var(--type-leading-tight);
+  --type-role-settings-slider-size: var(--type-size-body);
+  --type-role-settings-slider-weight: var(--type-weight-semibold);
+  --type-role-settings-slider-leading: var(--type-leading-tight);
+  --type-role-settings-shell-title-size: var(--type-role-panel-section-title-size);
+  --type-role-settings-shell-title-weight: var(--type-role-panel-section-title-weight);
+  --type-role-settings-shell-title-leading: var(--type-role-panel-section-title-leading);
+  --type-role-settings-shell-subtitle-size: var(--type-size-body);
+  --type-role-settings-shell-subtitle-leading: var(--type-leading-loose);
+  --type-role-toast-size: var(--type-size-body);
 
   --space-0: 0;
   --space-0_5: 0.125rem;
@@ -227,6 +374,20 @@
   --shadow-success-pulse: 0 0 1rem rgb(76 175 80 / 50%);
   --shadow-danger-clear: 0 0 0 transparent;
   --shadow-danger-pulse: 0 0 1rem rgb(224 85 85 / 60%);
+}
+
+@media (width <= 64rem) {
+  :root {
+    --type-role-brand-size: var(--type-size-body);
+    --type-role-brand-tracking: var(--type-tracking-none);
+    --type-role-puzzle-id-size: var(--type-size-heading);
+    --type-role-puzzle-pill-tracking: var(--type-tracking-none);
+    --type-role-puzzle-meta-size: var(--type-size-body);
+    --type-role-puzzle-meta-weight: var(--type-weight-medium);
+    --type-role-puzzle-status-size: var(--type-size-body);
+    --type-role-panel-title-size: var(--type-size-heading);
+    --type-role-panel-close-icon-size: var(--type-size-heading);
+  }
 }
 
 :root[data-theme="light"] {

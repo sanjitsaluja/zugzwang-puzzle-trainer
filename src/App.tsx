@@ -269,10 +269,10 @@ export function App() {
   return (
     <div className="ui-app-shell">
       <div className="ui-app-layout">
-        <div className="ui-layout-header">
-          <div className="ui-header-logo" aria-label="Zugzwang">
+        <header className="ui-layout-header">
+          <h1 className="ui-header-logo" aria-label="Zugzwang">
             zugzwang
-          </div>
+          </h1>
 
           <PuzzleInfo
             puzzleId={puzzleId}
@@ -283,10 +283,10 @@ export function App() {
           />
 
           <div className="ui-header-right">
-            <div className="ui-header-streak" aria-label={`Current streak: ${currentStreak}`}>
+            <p className="ui-header-streak" aria-label={`Current streak: ${currentStreak}`}>
               <span aria-hidden="true">🔥</span>
               <span>{currentStreak}</span>
-            </div>
+            </p>
 
             {puzzle.settings.timer && (
               <Timer
@@ -308,9 +308,9 @@ export function App() {
               </svg>
             </button>
           </div>
-        </div>
+        </header>
 
-        <div className="ui-layout-board">
+        <main className="ui-layout-board">
           <div
             className="ui-board-wrapper"
             data-state={boardVisualState}
@@ -346,18 +346,18 @@ export function App() {
               />
             )}
           </div>
-        </div>
+        </main>
 
-        <div className="ui-layout-moves">
+        <aside className="ui-layout-moves" aria-label="Move history">
           <MoveList
             moves={puzzle.moveHistory}
             showPlaceholder={puzzle.phase !== "loading" && puzzle.phase !== "complete"}
           />
-        </div>
+        </aside>
 
-        <div className="ui-layout-source">Susan Polgar Collection</div>
+        <p className="ui-layout-source">Susan Polgar Collection</p>
 
-        <div className="ui-layout-actions">
+        <footer className="ui-layout-actions">
           <ActionBar
             isPrevDisabled={isFirstPuzzle}
             isNextDisabled={puzzle.isLastPuzzle}
@@ -369,7 +369,7 @@ export function App() {
             onHint={handleHint}
             onReset={handleReset}
           />
-        </div>
+        </footer>
       </div>
       <MenuModal
         open={isMenuOpen}

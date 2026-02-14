@@ -45,25 +45,25 @@ export function PuzzleInfo({
   const sideColor = resolveSideColor(sideToMove);
 
   return (
-    <Panel className="ui-puzzle-info-panel">
-      <div className="ui-puzzle-id-group" aria-label={`Puzzle ${puzzleId} of ${TOTAL_PUZZLES}`}>
+    <Panel className="ui-puzzle-info-panel" aria-label="Puzzle details">
+      <h2 className="ui-puzzle-id-group" aria-label={`Puzzle ${puzzleId} of ${TOTAL_PUZZLES}`}>
         <span className="ui-puzzle-hash">#</span>
         <span className="ui-puzzle-number">{puzzleId}</span>
         <span className="ui-puzzle-total">/ {TOTAL_PUZZLES.toLocaleString()}</span>
-        <div className="ui-puzzle-source">Susan Polgar</div>
-      </div>
+        <span className="ui-puzzle-source">Susan Polgar</span>
+      </h2>
       <div className="ui-puzzle-objective-group">
-        <div className="ui-puzzle-type">{formatPuzzleTypeLabel(puzzleType)}</div>
+        <h3 className="ui-puzzle-type">{formatPuzzleTypeLabel(puzzleType)}</h3>
         {!isComplete && (
-          <div className="ui-puzzle-side" data-color={sideColor ?? undefined} aria-label={sideLabel}>
+          <p className="ui-puzzle-side" data-color={sideColor ?? undefined} aria-label={sideLabel}>
             {sideColor && <span className="ui-puzzle-side-indicator" aria-hidden="true" />}
             <span className="ui-puzzle-side-text">{sideLabel}</span>
-          </div>
+          </p>
         )}
         {statusState && (
-          <div className="ui-puzzle-status" data-state={statusState}>
+          <p className="ui-puzzle-status" data-state={statusState}>
             {statusLabel}
-          </div>
+          </p>
         )}
       </div>
     </Panel>

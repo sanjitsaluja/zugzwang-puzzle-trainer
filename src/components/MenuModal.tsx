@@ -146,7 +146,7 @@ export function MenuModal({
               ×
             </button>
 
-            <h1 className="ui-menu-title">{activeTab === "stats" ? "Stats" : "Settings"}</h1>
+            <h2 className="ui-menu-title">{activeTab === "stats" ? "Stats" : "Settings"}</h2>
             <span className="ui-menu-head-spacer" aria-hidden="true" />
           </header>
 

@@ -10,6 +10,7 @@ import type {
   GamePhase,
   GetOpponentMoveFn,
   ParsedMove,
+  PromotionPiece,
   PuzzleState,
   PuzzleData,
   PuzzleStrategy,
@@ -412,6 +413,10 @@ export function usePuzzle(options: UsePuzzleOptions = {}) {
     });
   }, [clearHintState]);
 
+  const getPromotionOptions = useCallback((from: string, to: string): PromotionPiece[] => {
+    return engineRef.current?.getPromotionOptions(from, to) ?? [];
+  }, []);
+
   const requestHint = useCallback(async () => {
     const puzzleData = snapshot.puzzleData;
     if (!puzzleData || snapshot.phase === "complete" || isHintLoading) return;
@@ -532,6 +537,7 @@ export function usePuzzle(options: UsePuzzleOptions = {}) {
     elapsedMs: timer.elapsedMs,
     formattedTime: timer.formatted,
     makeMove,
+    getPromotionOptions,
     nextPuzzle,
     previousPuzzle,
     goToPuzzle,

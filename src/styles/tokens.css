@@ -180,6 +180,12 @@
   --color-stats-callout-copy: #9ca7bc;
   --color-stats-callout-strong: #f4f8ff;
 
+  --color-promotion-option-bg: color-mix(in srgb, var(--color-bg-panel) 88%, #bcc4d6);
+  --color-promotion-option-border: color-mix(in srgb, var(--color-border-default) 72%, transparent);
+  --color-promotion-primary-bg: color-mix(in srgb, #ef8f49 82%, #b75d2f);
+  --color-promotion-primary-border: color-mix(in srgb, #ef8f49 74%, #a84f27);
+  --color-promotion-focus-ring: rgb(255 255 255 / 55%);
+
   --shadow-danger-soft: 0 0 0.5rem var(--color-accent-danger-shadow);
   --shadow-success-clear: 0 0 0 transparent;
   --shadow-success-pulse: 0 0 1rem rgb(76 175 80 / 50%);

@@ -4,6 +4,7 @@ import { ActionBar } from "@/components/ActionBar";
 import { Board } from "@/components/Board";
 import { MenuModal } from "@/components/MenuModal";
 import { MoveList } from "@/components/MoveList";
+import { PromotionPicker } from "@/components/PromotionPicker";
 import { PuzzleInfo } from "@/components/PuzzleInfo";
 import { Timer } from "@/components/Timer";
 import { useStats } from "@/hooks/useStats";
@@ -14,10 +15,17 @@ import {
   createPuzzleDataProvider,
   type PuzzleDataProvider,
 } from "@/lib/stats-manager";
-import { TOTAL_PUZZLES, type BoardColor } from "@/types";
+import { TOTAL_PUZZLES, type BoardColor, type PromotionPiece } from "@/types";
 
 type PulseVariant = "pulse-a" | "pulse-b";
 type BoardVisualState = "neutral" | "success" | "failed" | "failed-active";
+
+interface PendingPromotion {
+  from: string;
+  to: string;
+  color: BoardColor;
+  options: PromotionPiece[];
+}
 
 const APP_LOADING_CLASS = "ui-app-status ui-app-status-loading";
 const APP_ERROR_CLASS = "ui-app-status ui-app-status-error";
@@ -78,6 +86,7 @@ export function App() {
   const [pulseKind, setPulseKind] = useState<FeedbackKind | null>(null);
   const [pulseVariant, setPulseVariant] = useState<PulseVariant>("pulse-a");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [pendingPromotion, setPendingPromotion] = useState<PendingPromotion | null>(null);
   const lastFeedbackIdRef = useRef(0);
 
   useEffect(() => {
@@ -122,6 +131,10 @@ export function App() {
     return () => window.clearTimeout(timeout);
   }, [pulseKind]);
 
+  useEffect(() => {
+    setPendingPromotion(null);
+  }, [currentPuzzleId, puzzle.fen]);
+
   if (puzzle.isLoading) {
     const message =
       puzzle.engineStatus === "loading" ? "Loading engine..." : "Loading puzzles...";
@@ -151,6 +164,27 @@ export function App() {
   const boardLastMove = puzzle.lastMove;
   const hintFrom = puzzle.hintMove && puzzle.hintStep >= 1 ? puzzle.hintMove.from : undefined;
   const hintTo = puzzle.hintMove && puzzle.hintStep >= 2 ? puzzle.hintMove.to : undefined;
+
+  const handleBoardMove = (from: string, to: string) => {
+    const options = puzzle.getPromotionOptions(from, to);
+    if (options.length > 0) {
+      setPendingPromotion({
+        from,
+        to,
+        color: puzzle.turnColor,
+        options,
+      });
+      return;
+    }
+    puzzle.makeMove(from, to);
+  };
+
+  const handlePromotionSelect = (piece: PromotionPiece) => {
+    if (!pendingPromotion) return;
+    const { from, to } = pendingPromotion;
+    setPendingPromotion(null);
+    puzzle.makeMove(from, to, piece);
+  };
 
   const handleBack = () => {
     if (isFirstPuzzle) return;
@@ -241,8 +275,17 @@ export function App() {
               check={deriveCheckColor(puzzle.isCheck, puzzle.turnColor)}
               {...(hintFrom ? { hintFrom } : {})}
               {...(hintTo ? { hintTo } : {})}
-              onMove={puzzle.makeMove}
+              onMove={handleBoardMove}
             />
+            {pendingPromotion && (
+              <PromotionPicker
+                orientation={puzzle.orientation}
+                color={pendingPromotion.color}
+                destination={pendingPromotion.to}
+                options={pendingPromotion.options}
+                onSelect={handlePromotionSelect}
+              />
+            )}
           </div>
         </div>
 

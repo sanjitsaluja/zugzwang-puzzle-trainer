@@ -129,6 +129,10 @@ export class PuzzleEngine {
     return this.strategy.getOpponentMove(this.game.fen);
   }
 
+  getPromotionOptions(from: string, to: string): PromotionPiece[] {
+    return this.game?.getPromotionOptions(from, to) ?? [];
+  }
+
   async makeMove(from: string, to: string, promotion?: string): Promise<void> {
     if (this._phase !== "playing" || !this.game || !this.strategy) {
       console.log(`[PE] makeMove blocked: phase=${this._phase} game=${!!this.game} strategy=${!!this.strategy}`);

@@ -113,6 +113,19 @@ describe("ChessGame", () => {
     });
   });
 
+  describe("getPromotionOptions", () => {
+    it("returns all promotion pieces for a valid promotion move", () => {
+      const promoFen = "4k3/P7/8/8/8/8/8/4K3 w - - 0 1";
+      const game = new ChessGame(promoFen);
+      expect(game.getPromotionOptions("a7", "a8")).toEqual(["q", "r", "b", "n"]);
+    });
+
+    it("returns empty array for non-promotion moves", () => {
+      const game = new ChessGame(STARTING_FEN);
+      expect(game.getPromotionOptions("e2", "e4")).toEqual([]);
+    });
+  });
+
   describe("makeMove", () => {
     it("applies a legal move and returns SAN", () => {
       const game = new ChessGame(STARTING_FEN);

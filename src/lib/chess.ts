@@ -1,5 +1,8 @@
 import { Chess, type Square } from "chess.js";
 import type { BoardColor } from "@/types";
+import { PROMOTION_PIECES, type PromotionPiece } from "@/types";
+
+const VALID_PROMOTIONS = new Set<string>(PROMOTION_PIECES);
 
 export class ChessGame {
   private chess: Chess;
@@ -47,6 +50,21 @@ export class ChessGame {
       }
     }
     return dests;
+  }
+
+  getPromotionOptions(from: string, to: string): PromotionPiece[] {
+    const found = new Set<PromotionPiece>();
+    for (const move of this.chess.moves({ verbose: true })) {
+      if (
+        move.from === from &&
+        move.to === to &&
+        move.promotion !== undefined &&
+        VALID_PROMOTIONS.has(move.promotion)
+      ) {
+        found.add(move.promotion as PromotionPiece);
+      }
+    }
+    return PROMOTION_PIECES.filter((piece) => found.has(piece));
   }
 
   makeMove(from: string, to: string, promotion?: string): string | null {

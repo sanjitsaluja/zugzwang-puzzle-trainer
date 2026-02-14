@@ -88,6 +88,11 @@ export function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [pendingPromotion, setPendingPromotion] = useState<PendingPromotion | null>(null);
   const lastFeedbackIdRef = useRef(0);
+  const menuPausedTimerRef = useRef(false);
+  const pauseTimerRef = useRef(puzzle.pauseTimer);
+  pauseTimerRef.current = puzzle.pauseTimer;
+  const resumeTimerRef = useRef(puzzle.resumeTimer);
+  resumeTimerRef.current = puzzle.resumeTimer;
 
   useEffect(() => {
     let isCancelled = false;
@@ -134,6 +139,18 @@ export function App() {
   useEffect(() => {
     setPendingPromotion(null);
   }, [currentPuzzleId, puzzle.fen]);
+
+  useEffect(() => {
+    if (isMenuOpen) {
+      menuPausedTimerRef.current = pauseTimerRef.current();
+      return;
+    }
+
+    if (menuPausedTimerRef.current) {
+      resumeTimerRef.current();
+      menuPausedTimerRef.current = false;
+    }
+  }, [isMenuOpen]);
 
   if (puzzle.isLoading) {
     const message =
@@ -211,6 +228,10 @@ export function App() {
     setIsMenuOpen(false);
   };
   const handleOpenPuzzleFromStats = (targetPuzzleId: number) => {
+    if (menuPausedTimerRef.current) {
+      resumeTimerRef.current();
+      menuPausedTimerRef.current = false;
+    }
     puzzle.goToPuzzle(targetPuzzleId);
     navigate(`/puzzle/${targetPuzzleId}`);
     setIsMenuOpen(false);
@@ -249,7 +270,7 @@ export function App() {
             <button
               className="ui-header-menu-btn"
               onClick={handleOpenMenu}
-              aria-label="Open stats"
+              aria-label="Open menu"
             >
               <svg viewBox="0 0 4 16" width="4" height="16" fill="currentColor" aria-hidden="true">
                 <circle cx="2" cy="2" r="1.5" />

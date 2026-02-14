@@ -4,7 +4,6 @@ import { StatsContent, type StatsContentProps } from "./Stats";
 
 function makeProps(overrides: Partial<StatsContentProps> = {}): StatsContentProps {
   return {
-    onClose: vi.fn(),
     onOpenPuzzle: vi.fn(),
     solved: 38,
     retryQueue: [

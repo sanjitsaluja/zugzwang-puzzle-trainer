@@ -1,9 +1,22 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { SettingsContent } from "@/components/SettingsContent";
 import type { StatsContentProps } from "@/components/Stats";
 import { StatsContent } from "@/components/Stats";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { Panel } from "@/components/ui/Panel";
 
 const CLOSE_ANIMATION_MS = 150;
+const MENU_SEGMENTS = [
+  { value: "stats", label: "Stats" },
+  { value: "settings", label: "Settings" },
+] as const;
+
+type MenuTab = "stats" | "settings";
+
+const DEFAULT_SCROLL_POSITIONS: Record<MenuTab, number> = {
+  stats: 0,
+  settings: 0,
+};
 
 interface MenuModalProps extends StatsContentProps {
   open: boolean;
@@ -17,13 +30,41 @@ export function MenuModal({
 }: MenuModalProps) {
   const [isMounted, setIsMounted] = useState(open);
   const [isClosing, setIsClosing] = useState(false);
+  const [activeTab, setActiveTab] = useState<MenuTab>("stats");
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const restoreFocusRef = useRef<HTMLElement | null>(null);
+  const statsBodyRef = useRef<HTMLElement | null>(null);
+  const settingsBodyRef = useRef<HTMLDivElement | null>(null);
+  const scrollByTabRef = useRef<Record<MenuTab, number>>({ ...DEFAULT_SCROLL_POSITIONS });
+
+  const getScrollElement = useCallback((tab: MenuTab) => {
+    return tab === "stats" ? statsBodyRef.current : settingsBodyRef.current;
+  }, []);
+
+  const setTab = useCallback(
+    (nextTab: MenuTab) => {
+      if (nextTab === activeTab) return;
+      const activeScrollNode = getScrollElement(activeTab);
+      if (activeScrollNode) {
+        scrollByTabRef.current[activeTab] = activeScrollNode.scrollTop;
+      }
+      setActiveTab(nextTab);
+    },
+    [activeTab, getScrollElement],
+  );
+
+  useLayoutEffect(() => {
+    const activeScrollNode = getScrollElement(activeTab);
+    if (!activeScrollNode) return;
+    activeScrollNode.scrollTop = scrollByTabRef.current[activeTab];
+  }, [activeTab, getScrollElement]);
 
   useEffect(() => {
     if (open) {
       setIsMounted(true);
       setIsClosing(false);
+      setActiveTab("stats");
+      scrollByTabRef.current = { ...DEFAULT_SCROLL_POSITIONS };
       return;
     }
     if (!isMounted) return;
@@ -70,12 +111,43 @@ export function MenuModal({
         className="ui-stats-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="Stats"
+        aria-label="Menu"
         data-state={isClosing ? "closing" : "open"}
       >
-        <StatsContent onClose={onClose} {...statsProps} />
+        <div className="ui-menu-root">
+          <header className="ui-menu-head">
+            <button
+              type="button"
+              className="ui-menu-close-button"
+              aria-label="Close menu"
+              onClick={onClose}
+              data-close-focus
+            >
+              ×
+            </button>
+
+            <h1 className="ui-menu-title">{activeTab === "stats" ? "Stats" : "Settings"}</h1>
+            <span className="ui-menu-head-spacer" aria-hidden="true" />
+          </header>
+
+          <div className="ui-menu-segments">
+            <SegmentedControl
+              ariaLabel="Menu sections"
+              segments={MENU_SEGMENTS.map(({ value, label }) => ({ value, label }))}
+              value={activeTab}
+              onChange={(tab) => setTab(tab === "settings" ? "settings" : "stats")}
+            />
+          </div>
+
+          <div className="ui-menu-panel">
+            {activeTab === "stats" ? (
+              <StatsContent bodyRef={statsBodyRef} {...statsProps} />
+            ) : (
+              <SettingsContent bodyRef={settingsBodyRef} />
+            )}
+          </div>
+        </div>
       </Panel>
     </div>
   );
 }
-

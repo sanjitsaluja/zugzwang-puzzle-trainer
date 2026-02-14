@@ -256,12 +256,12 @@ export function usePuzzle(options: UsePuzzleOptions = {}) {
     persistSession(
       puzzleData.problemid,
       snapshot,
-      timer.elapsedMs,
-      timer.isRunning,
+      timerRef.current.elapsedMs,
+      timerRef.current.isRunning,
       hintStep,
       hintMove,
     );
-  }, [hintMove, hintStep, persistSession, snapshot, timer.elapsedMs, timer.isRunning]);
+  }, [hintMove, hintStep, persistSession, snapshot]);
 
   useEffect(() => {
     const puzzleData = snapshot.puzzleData;
@@ -493,6 +493,18 @@ export function usePuzzle(options: UsePuzzleOptions = {}) {
     engineRef.current?.loadPuzzle(puzzleData, strategy);
   }, [isAtInitialState, snapshot.puzzleData]);
 
+  const pauseTimer = useCallback((): boolean => {
+    if (snapshot.phase === "complete") return false;
+    const wasRunning = timerRef.current.isRunning;
+    if (wasRunning) timerRef.current.stop();
+    return wasRunning;
+  }, [snapshot.phase]);
+
+  const resumeTimer = useCallback(() => {
+    if (snapshot.phase === "complete") return;
+    if (!timerRef.current.isRunning) timerRef.current.start();
+  }, [snapshot.phase]);
+
   const isLastPuzzle = state.currentPuzzleId >= TOTAL_PUZZLES;
 
   const nextPuzzle = useCallback(() => {
@@ -546,6 +558,8 @@ export function usePuzzle(options: UsePuzzleOptions = {}) {
     isHintLoading,
     requestHint,
     resetCurrentPuzzle,
+    pauseTimer,
+    resumeTimer,
     isAtInitialState,
     isLastPuzzle,
     loadError,

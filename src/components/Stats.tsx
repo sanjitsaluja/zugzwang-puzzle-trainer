@@ -1,10 +1,9 @@
-import { useId, useMemo, useState, type ReactNode } from "react";
+import { useId, useMemo, useState, type ReactNode, type RefObject } from "react";
 import type { RetryQueueItem, TypeStats } from "@/lib/stats-manager";
 
 type StatsTab = "retry" | "progress";
 
 export interface StatsContentProps {
-  onClose: () => void;
   onOpenPuzzle: (puzzleId: number) => void;
   solved: number;
   retryQueue: RetryQueueItem[];
@@ -14,6 +13,10 @@ export interface StatsContentProps {
   currentPuzzle: number;
   totalPuzzles: number;
   typeStats: TypeStats[];
+}
+
+interface StatsContentViewProps extends StatsContentProps {
+  bodyRef?: RefObject<HTMLElement | null>;
 }
 
 interface QuickStatCardProps {
@@ -303,7 +306,7 @@ function ProgressTab({
 }
 
 export function StatsContent({
-  onClose,
+  bodyRef,
   onOpenPuzzle,
   solved,
   retryQueue,
@@ -313,7 +316,7 @@ export function StatsContent({
   currentPuzzle,
   totalPuzzles,
   typeStats,
-}: StatsContentProps) {
+}: StatsContentViewProps) {
   const [activeTab, setActiveTab] = useState<StatsTab>("retry");
   const tabsId = useId();
   const retryTabId = `${tabsId}-retry-tab`;
@@ -331,18 +334,6 @@ export function StatsContent({
   return (
     <div className="ui-stats-root">
       <header className="ui-stats-head">
-        <div className="ui-stats-head-row">
-          <h1 className="ui-stats-title">Stats</h1>
-          <button
-            type="button"
-            className="ui-stats-close-button"
-            aria-label="Close stats"
-            onClick={onClose}
-            data-close-focus
-          >
-            Close
-          </button>
-        </div>
         <div className="ui-stats-quick-row">
           <QuickStatCard label="Solved" value={solved} />
           <QuickStatCard label="To Retry" value={retryCount} highlight={retryCount > 0} />
@@ -370,7 +361,7 @@ export function StatsContent({
         </TabButton>
       </nav>
 
-      <main className="ui-stats-body">
+      <main className="ui-stats-body" ref={bodyRef}>
         <section
           className="ui-stats-tab-panel"
           role="tabpanel"

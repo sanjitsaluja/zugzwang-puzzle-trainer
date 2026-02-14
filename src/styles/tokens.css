@@ -41,6 +41,12 @@
   --size-mobile-breakpoint: 48rem;
   --size-app-padding-desktop: 1.5rem;
   --size-app-padding-mobile: 0.75rem;
+  --size-safe-area-bottom: env(safe-area-inset-bottom, 0);
+  --size-safe-area-left: env(safe-area-inset-left, 0);
+  --size-safe-area-right: env(safe-area-inset-right, 0);
+  --size-app-padding-mobile-safe-bottom: calc(var(--size-app-padding-mobile) + var(--size-safe-area-bottom));
+  --size-app-padding-mobile-safe-inline-start: calc(var(--size-app-padding-mobile) + var(--size-safe-area-left));
+  --size-app-padding-mobile-safe-inline-end: calc(var(--size-app-padding-mobile) + var(--size-safe-area-right));
 
   --radius-xs: 0.25rem;
   --radius-sm: 0.375rem;

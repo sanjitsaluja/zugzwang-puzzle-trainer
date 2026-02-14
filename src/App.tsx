@@ -2,10 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ActionBar } from "@/components/ActionBar";
 import { Board } from "@/components/Board";
-import { FeedbackToast } from "@/components/FeedbackToast";
+import { MenuModal } from "@/components/MenuModal";
 import { MoveList } from "@/components/MoveList";
 import { PuzzleInfo } from "@/components/PuzzleInfo";
-import { Stats } from "@/components/Stats";
 import { Timer } from "@/components/Timer";
 import { useAppState } from "@/hooks/useAppState";
 import { usePuzzle } from "@/hooks/usePuzzle";
@@ -30,11 +29,6 @@ function deriveCheckColor(isCheck: boolean, turnColor: BoardColor): BoardColor |
   return isCheck ? turnColor : false;
 }
 
-function feedbackMessage(kind: FeedbackKind): string {
-  if (kind === "correct") return "Correct!";
-  return "Not the best move. Keep playing to explore.";
-}
-
 export function App() {
   const { puzzleId: puzzleIdParam } = useParams<{ puzzleId: string }>();
   const navigate = useNavigate();
@@ -44,9 +38,7 @@ export function App() {
   const routePuzzleId = parseRoutePuzzleId(puzzleIdParam);
   const [pulseKind, setPulseKind] = useState<FeedbackKind | null>(null);
   const [pulseVariant, setPulseVariant] = useState<PulseVariant>("pulse-a");
-  const [toastKind, setToastKind] = useState<FeedbackKind | null>(null);
-  const [toastMessage, setToastMessage] = useState("");
-  const [isStatsOpen, setIsStatsOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const lastFeedbackIdRef = useRef(0);
 
   useEffect(() => {
@@ -65,8 +57,6 @@ export function App() {
     lastFeedbackIdRef.current = feedback.id;
     setPulseKind(feedback.kind);
     setPulseVariant((current) => (current === "pulse-a" ? "pulse-b" : "pulse-a"));
-    setToastKind(feedback.kind);
-    setToastMessage(feedbackMessage(feedback.kind));
   }, [puzzle.feedbackEvent]);
 
   useEffect(() => {
@@ -76,15 +66,6 @@ export function App() {
     }, 550);
     return () => window.clearTimeout(timeout);
   }, [pulseKind]);
-
-  useEffect(() => {
-    if (!toastKind) return;
-    const timeout = window.setTimeout(() => {
-      setToastKind(null);
-      setToastMessage("");
-    }, 2500);
-    return () => window.clearTimeout(timeout);
-  }, [toastKind]);
 
   if (puzzle.isLoading) {
     const message =
@@ -126,44 +107,22 @@ export function App() {
     puzzle.nextPuzzle();
     navigate(`/puzzle/${targetPuzzleId}`);
   };
-  const handleOpenStats = () => {
-    setIsStatsOpen(true);
+  const handleOpenMenu = () => {
+    setIsMenuOpen(true);
   };
-  const handleCloseStats = () => {
-    setIsStatsOpen(false);
+  const handleCloseMenu = () => {
+    setIsMenuOpen(false);
   };
   const handleOpenPuzzleFromStats = (targetPuzzleId: number) => {
     puzzle.goToPuzzle(targetPuzzleId);
     navigate(`/puzzle/${targetPuzzleId}`);
+    setIsMenuOpen(false);
   };
-
-  const settingsLabel =
-    theme.preference === "system"
-      ? `Theme: Auto (${theme.resolvedTheme})`
-      : `Theme: ${theme.preference === "dark" ? "Dark" : "Light"}`;
 
   return (
     <div className="ui-app-shell">
       <div className="ui-app-layout">
-        <div
-          className="ui-board-wrapper"
-          data-state={boardVisualState}
-          data-pulse-kind={boardPulseKind ?? undefined}
-          data-pulse-variant={boardPulseVariant ?? undefined}
-        >
-          <Board
-            fen={puzzle.fen}
-            orientation={puzzle.orientation}
-            turnColor={puzzle.turnColor}
-            dests={puzzle.dests}
-            interactive={puzzle.isInteractive}
-            {...(boardLastMove ? { lastMove: boardLastMove } : {})}
-            check={deriveCheckColor(puzzle.isCheck, puzzle.turnColor)}
-            onMove={puzzle.makeMove}
-          />
-        </div>
-
-        <div className="ui-app-sidebar">
+        <div className="ui-layout-header">
           <PuzzleInfo
             puzzleId={puzzleId}
             puzzleType={puzzleType}
@@ -178,13 +137,47 @@ export function App() {
             isFailed={puzzle.isFailed}
           />
 
-          {toastKind && <FeedbackToast kind={toastKind} message={toastMessage} />}
+          <button
+            className="ui-header-menu-btn"
+            onClick={handleOpenMenu}
+            aria-label="Open menu"
+          >
+            <svg viewBox="0 0 4 16" width="4" height="16" fill="currentColor" aria-hidden="true">
+              <circle cx="2" cy="2" r="1.5" />
+              <circle cx="2" cy="8" r="1.5" />
+              <circle cx="2" cy="14" r="1.5" />
+            </svg>
+          </button>
+        </div>
 
+        <div className="ui-layout-board">
+          <div
+            className="ui-board-wrapper"
+            data-state={boardVisualState}
+            data-pulse-kind={boardPulseKind ?? undefined}
+            data-pulse-variant={boardPulseVariant ?? undefined}
+          >
+            <Board
+              fen={puzzle.fen}
+              orientation={puzzle.orientation}
+              turnColor={puzzle.turnColor}
+              dests={puzzle.dests}
+              interactive={puzzle.isInteractive}
+              {...(boardLastMove ? { lastMove: boardLastMove } : {})}
+              check={deriveCheckColor(puzzle.isCheck, puzzle.turnColor)}
+              onMove={puzzle.makeMove}
+            />
+          </div>
+        </div>
+
+        <div className="ui-layout-moves">
           <MoveList
             moves={puzzle.moveHistory}
-            showPlaceholder={puzzle.phase === "playing" && !puzzle.isFailed}
+            showPlaceholder={puzzle.phase !== "loading" && puzzle.phase !== "complete"}
           />
+        </div>
 
+        <div className="ui-layout-actions">
           <ActionBar
             isBackDisabled={isFirstPuzzle}
             isNextDisabled={!canAdvance}
@@ -192,22 +185,22 @@ export function App() {
             isComplete={isComplete}
             isLastPuzzle={puzzle.isLastPuzzle}
             onBack={handleBack}
-            settingsLabel={settingsLabel}
-            onOpenSettings={theme.cyclePreference}
-            onOpenStats={handleOpenStats}
             onNext={handleNext}
           />
         </div>
       </div>
-      <Stats
-        open={isStatsOpen}
-        onClose={handleCloseStats}
+      <MenuModal
+        open={isMenuOpen}
+        onClose={handleCloseMenu}
         onOpenPuzzle={handleOpenPuzzleFromStats}
         onResetStats={resetPuzzleStats}
         stats={stats}
         puzzles={state.puzzles}
         currentPuzzleId={state.currentPuzzleId}
         totalPuzzles={TOTAL_PUZZLES}
+        themePreference={theme.preference}
+        resolvedTheme={theme.resolvedTheme}
+        onSetThemePreference={theme.setPreference}
       />
     </div>
   );

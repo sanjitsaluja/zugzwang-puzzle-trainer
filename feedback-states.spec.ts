@@ -1,7 +1,7 @@
 /**
  * Playwright script to verify chess puzzle feedback states.
  * Run: npx playwright test feedback-states.spec.ts
- * 
+ *
  * Prerequisite: Dev server running on http://localhost:5173
  */
 
@@ -54,9 +54,9 @@ test.describe("Chess puzzle feedback states", () => {
 
     const boardWrapper = page.locator(".board-wrapper");
     const toast = page.locator('[role="status"]');
-    
+
     const hasGreenPulse = await boardWrapper.evaluate((el) => {
-      return el.classList.contains("state-pulse-correct") || 
+      return el.classList.contains("state-pulse-correct") ||
         getComputedStyle(el).borderColor.includes("76, 175, 80");
     }).catch(() => false);
 
@@ -74,9 +74,9 @@ test.describe("Chess puzzle feedback states", () => {
 
     const boardWrapper = page.locator(".board-wrapper");
     const toast = page.locator('[role="status"]');
-    
+
     const hasRedState = await boardWrapper.evaluate((el) => {
-      return el.classList.contains("state-pulse-incorrect") || 
+      return el.classList.contains("state-pulse-incorrect") ||
         el.classList.contains("state-failed-active");
     }).catch(() => false);
 

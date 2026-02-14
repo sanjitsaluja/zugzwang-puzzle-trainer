@@ -12,6 +12,7 @@ import {
 interface UseThemeResult {
   preference: ThemePreference;
   resolvedTheme: ResolvedTheme;
+  setPreference: (pref: ThemePreference) => void;
   cyclePreference: () => void;
 }
 
@@ -40,5 +41,5 @@ export function useTheme(): UseThemeResult {
     [],
   );
 
-  return { preference, resolvedTheme, cyclePreference };
+  return { preference, resolvedTheme, setPreference, cyclePreference };
 }

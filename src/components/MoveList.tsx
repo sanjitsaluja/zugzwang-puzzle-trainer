@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import type { MoveRecord } from "@/hooks/usePuzzle";
 import { Label } from "@/components/ui/Label";
 import { Panel } from "@/components/ui/Panel";
@@ -8,22 +9,24 @@ interface MoveListProps {
 }
 
 export function MoveList({ moves, showPlaceholder }: MoveListProps) {
+  const listRef = useRef<HTMLOListElement>(null);
+
+  useEffect(() => {
+    if (listRef.current) {
+      listRef.current.scrollTop = listRef.current.scrollHeight;
+    }
+  }, [moves.length]);
+
   return (
     <Panel className="ui-move-list-panel">
       <Label className="ui-move-list-title">Moves</Label>
-      <ol className="ui-move-list">
+      <ol ref={listRef} className="ui-move-list">
         {moves.map((record) => (
           <li key={record.moveNumber} className="ui-move-row">
             <span className="ui-move-number">{record.moveNumber}.</span>
-            <span
-              className="ui-move-san"
-              data-correct={record.userMove.correct ? "true" : "false"}
-            >
-              {record.userMove.san}
-              {!record.userMove.correct ? "?" : ""}
-            </span>
+            <span className="ui-move-san">{record.userMove.san}</span>
             {record.opponentMove && (
-              <span className="ui-move-opponent">{record.opponentMove.san}</span>
+              <span className="ui-move-san">{record.opponentMove.san}</span>
             )}
           </li>
         ))}

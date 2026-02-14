@@ -12,9 +12,7 @@ import { Label } from "@/components/ui/Label";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { Panel } from "@/components/ui/Panel";
 
-interface StatsProps {
-  open: boolean;
-  onClose: () => void;
+export interface StatsContentProps {
   onOpenPuzzle: (puzzleId: number) => void;
   onResetStats: () => void;
   stats: DerivedStats;
@@ -62,16 +60,14 @@ function StatsSection({ title, children }: StatsSectionProps) {
   );
 }
 
-export function Stats({
-  open,
-  onClose,
+export function StatsContent({
   onOpenPuzzle,
   onResetStats,
   stats,
   puzzles,
   currentPuzzleId,
   totalPuzzles,
-}: StatsProps) {
+}: StatsContentProps) {
   const [confirmingReset, setConfirmingReset] = useState(false);
 
   const puzzleStates = useMemo(() => Object.values(puzzles), [puzzles]);
@@ -114,113 +110,99 @@ export function Stats({
     setConfirmingReset(false);
   };
 
-  if (!open) return null;
-
   return (
-    <div className="ui-stats-overlay" onClick={(event) => event.target === event.currentTarget && onClose()}>
-      <Panel className="ui-stats-modal" role="dialog" aria-modal="true" aria-label="Statistics">
-        <header className="ui-stats-header">
-          <h2 className="ui-stats-title">Statistics</h2>
-          <Button className="ui-stats-close-button" onClick={onClose}>
-            Close
+    <>
+      <StatsSection title="Progress">
+        <div className="ui-stats-grid">
+          <MetricCard
+            label="Current puzzle"
+            value={`Puzzle ${currentPuzzleId} / ${totalPuzzles}`}
+          />
+          <MetricCard label="Remaining" value={remainingCount} />
+        </div>
+        <div className="ui-stats-progress">
+          <div className="ui-stats-progress-track">
+            <div className="ui-stats-progress-fill" style={{ width: `${progressRatio * 100}%` }} />
+          </div>
+          <span className="ui-stats-progress-text">{progressPercent}% complete</span>
+        </div>
+      </StatsSection>
+
+      <StatsSection title="Performance Summary">
+        <div className="ui-stats-grid">
+          <MetricCard label="Attempted" value={stats.totalAttempted} />
+          <MetricCard label="Solved" value={stats.totalSolved} />
+          <MetricCard label="Failed" value={failedCount} />
+          <MetricCard label="Success rate" value={`${successPercent}%`} />
+          <MetricCard label="Average solve time" value={averageSolveTime} />
+          <MetricCard label="Total attempts" value={totalAttempts} />
+          <MetricCard label="Extra retries" value={extraRetries} />
+        </div>
+      </StatsSection>
+
+      <StatsSection title="Most Missed Puzzles">
+        {mostMissedData.length === 0 ? (
+          <p className="ui-stats-empty">No missed puzzles yet. Keep training.</p>
+        ) : (
+          <table className="ui-stats-table">
+            <thead>
+              {table.getHeaderGroups().map((group) => (
+                <tr key={group.id}>
+                  {group.headers.map((header) => (
+                    <th key={header.id} className="ui-stats-table-header-cell">
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                    </th>
+                  ))}
+                </tr>
+              ))}
+            </thead>
+            <tbody>
+              {table.getRowModel().rows.map((row) => (
+                <tr key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <td key={cell.id} className="ui-stats-table-cell">
+                      {cell.column.id === "puzzleId" ? (
+                        <button className="ui-stats-link" onClick={() => onOpenPuzzle(row.original.puzzleId)}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </button>
+                      ) : (
+                        flexRender(cell.column.columnDef.cell, cell.getContext())
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </StatsSection>
+
+      <footer className="ui-stats-footer">
+        {!confirmingReset ? (
+          <Button className="ui-stats-reset-button" onClick={() => setConfirmingReset(true)}>
+            Reset Stats
           </Button>
-        </header>
-
-        <StatsSection title="Progress">
-          <div className="ui-stats-grid">
-            <MetricCard
-              label="Current puzzle"
-              value={`Puzzle ${currentPuzzleId} / ${totalPuzzles}`}
-            />
-            <MetricCard label="Remaining" value={remainingCount} />
-          </div>
-          <div className="ui-stats-progress">
-            <div className="ui-stats-progress-track">
-              <div className="ui-stats-progress-fill" style={{ width: `${progressRatio * 100}%` }} />
+        ) : (
+          <div className="ui-stats-confirm">
+            <span className="ui-stats-confirm-message">
+              Clear all puzzle stats? Current puzzle position will be kept.
+            </span>
+            <div className="ui-stats-confirm-actions">
+              <Button onClick={() => setConfirmingReset(false)}>
+                Cancel
+              </Button>
+              <Button variant="danger" onClick={handleReset}>
+                Confirm Reset
+              </Button>
             </div>
-            <span className="ui-stats-progress-text">{progressPercent}% complete</span>
           </div>
-        </StatsSection>
-
-        <StatsSection title="Performance Summary">
-          <div className="ui-stats-grid">
-            <MetricCard label="Attempted" value={stats.totalAttempted} />
-            <MetricCard label="Solved" value={stats.totalSolved} />
-            <MetricCard label="Failed" value={failedCount} />
-            <MetricCard label="Success rate" value={`${successPercent}%`} />
-            <MetricCard label="Average solve time" value={averageSolveTime} />
-            <MetricCard label="Total attempts" value={totalAttempts} />
-            <MetricCard label="Extra retries" value={extraRetries} />
-          </div>
-        </StatsSection>
-
-        <StatsSection title="Most Missed Puzzles">
-          {mostMissedData.length === 0 ? (
-            <p className="ui-stats-empty">No missed puzzles yet. Keep training.</p>
-          ) : (
-            <table className="ui-stats-table">
-              <thead>
-                {table.getHeaderGroups().map((group) => (
-                  <tr key={group.id}>
-                    {group.headers.map((header) => (
-                      <th key={header.id} className="ui-stats-table-header-cell">
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
-                      </th>
-                    ))}
-                  </tr>
-                ))}
-              </thead>
-              <tbody>
-                {table.getRowModel().rows.map((row) => (
-                  <tr key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="ui-stats-table-cell">
-                        {cell.column.id === "puzzleId" ? (
-                          <button className="ui-stats-link" onClick={() => {
-                            onOpenPuzzle(row.original.puzzleId);
-                            onClose();
-                          }}>
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                          </button>
-                        ) : (
-                          flexRender(cell.column.columnDef.cell, cell.getContext())
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </StatsSection>
-
-        <footer className="ui-stats-footer">
-          {!confirmingReset ? (
-            <Button className="ui-stats-reset-button" onClick={() => setConfirmingReset(true)}>
-              Reset Stats
-            </Button>
-          ) : (
-            <div className="ui-stats-confirm">
-              <span className="ui-stats-confirm-message">
-                Clear all puzzle stats? Current puzzle position will be kept.
-              </span>
-              <div className="ui-stats-confirm-actions">
-                <Button onClick={() => setConfirmingReset(false)}>
-                  Cancel
-                </Button>
-                <Button variant="danger" onClick={handleReset}>
-                  Confirm Reset
-                </Button>
-              </div>
-            </div>
-          )}
-        </footer>
-      </Panel>
-    </div>
+        )}
+      </footer>
+    </>
   );
 }

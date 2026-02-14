@@ -25,38 +25,43 @@ export function ActionBar({
 }: ActionBarProps) {
   return (
     <div className="ui-action-bar" role="toolbar" aria-label="Puzzle controls">
-      <Button
-        className="ui-action-bar-nav-arrow ui-action-bar-prev"
-        aria-label="Previous puzzle"
-        disabled={isPrevDisabled}
-        onClick={onPrev}
-      >
-        ←
-      </Button>
+      <div className="ui-action-bar-nav-group" role="group" aria-label="Puzzle navigation">
+        <Button
+          className="ui-action-bar-nav-arrow ui-action-bar-prev"
+          aria-label="Previous puzzle"
+          disabled={isPrevDisabled}
+          onClick={onPrev}
+        >
+          ← <kbd>A</kbd>
+        </Button>
+        <Button
+          className="ui-action-bar-nav-arrow ui-action-bar-next"
+          aria-label="Next puzzle"
+          disabled={isNextDisabled}
+          onClick={onNext}
+        >
+          → <kbd>D</kbd>
+        </Button>
+      </div>
+
+      <div className="ui-action-bar-divider" aria-hidden="true" />
+
       <div className="ui-action-bar-center" role="group" aria-label="Hint and reset actions">
         <Button
           className="ui-action-bar-center-btn ui-action-bar-hint"
           disabled={isHintDisabled}
           onClick={onHint}
         >
-          💡 {isHintBusy ? "Thinking..." : "Hint"}
+          💡 {isHintBusy ? "Thinking..." : "Hint"} <kbd>H</kbd>
         </Button>
         <Button
           className="ui-action-bar-center-btn ui-action-bar-reset"
           disabled={isResetDisabled}
           onClick={onReset}
         >
-          ↺ Reset
+          ↺ Reset <kbd>R</kbd>
         </Button>
       </div>
-      <Button
-        className="ui-action-bar-nav-arrow ui-action-bar-next"
-        aria-label="Next puzzle"
-        disabled={isNextDisabled}
-        onClick={onNext}
-      >
-        →
-      </Button>
     </div>
   );
 }

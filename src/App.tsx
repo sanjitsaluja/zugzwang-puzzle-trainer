@@ -186,6 +186,10 @@ export function App() {
     <div className="ui-app-shell">
       <div className="ui-app-layout">
         <div className="ui-layout-header">
+          <div className="ui-header-logo" aria-label="Zugzwang">
+            zugzwang
+          </div>
+
           <PuzzleInfo
             puzzleId={puzzleId}
             puzzleType={puzzleType}
@@ -194,23 +198,30 @@ export function App() {
             isFailed={puzzle.isFailed}
           />
 
-          <Timer
-            formatted={puzzle.formattedTime}
-            phase={puzzle.phase}
-            isFailed={puzzle.isFailed}
-          />
+          <div className="ui-header-right">
+            <div className="ui-header-streak" aria-label={`Current streak: ${currentStreak}`}>
+              <span aria-hidden="true">🔥</span>
+              <span>{currentStreak}</span>
+            </div>
 
-          <button
-            className="ui-header-menu-btn"
-            onClick={handleOpenMenu}
-            aria-label="Open stats"
-          >
-            <svg viewBox="0 0 4 16" width="4" height="16" fill="currentColor" aria-hidden="true">
-              <circle cx="2" cy="2" r="1.5" />
-              <circle cx="2" cy="8" r="1.5" />
-              <circle cx="2" cy="14" r="1.5" />
-            </svg>
-          </button>
+            <Timer
+              formatted={puzzle.formattedTime}
+              phase={puzzle.phase}
+              isFailed={puzzle.isFailed}
+            />
+
+            <button
+              className="ui-header-menu-btn"
+              onClick={handleOpenMenu}
+              aria-label="Open stats"
+            >
+              <svg viewBox="0 0 4 16" width="4" height="16" fill="currentColor" aria-hidden="true">
+                <circle cx="2" cy="2" r="1.5" />
+                <circle cx="2" cy="8" r="1.5" />
+                <circle cx="2" cy="14" r="1.5" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         <div className="ui-layout-board">
@@ -241,6 +252,8 @@ export function App() {
             showPlaceholder={puzzle.phase !== "loading" && puzzle.phase !== "complete"}
           />
         </div>
+
+        <div className="ui-layout-source">Susan Polgar Collection</div>
 
         <div className="ui-layout-actions">
           <ActionBar

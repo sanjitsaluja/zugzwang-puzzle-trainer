@@ -38,7 +38,7 @@
   --size-stats-modal-max-h: 48.75rem;
   --size-stats-close-min-w: 6.25rem;
   --size-stats-reset-min-w: 8.125rem;
-  --size-mobile-breakpoint: 48rem;
+  --size-mobile-breakpoint: 64rem;
   --size-app-padding-desktop: 1.5rem;
   --size-app-padding-mobile: 0.75rem;
   --size-safe-area-bottom: env(safe-area-inset-bottom, 0);

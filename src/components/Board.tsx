@@ -114,5 +114,17 @@ export function Board({
     });
   }, [fen, orientation, turnColor, dests, interactive, lastMove, check, hintFrom, hintTo]);
 
+  useEffect(() => {
+    const node = containerRef.current;
+    if (!node || typeof ResizeObserver === "undefined") return;
+
+    const observer = new ResizeObserver(() => {
+      apiRef.current?.redrawAll();
+    });
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
   return <div ref={containerRef} className="ui-board-root" />;
 }

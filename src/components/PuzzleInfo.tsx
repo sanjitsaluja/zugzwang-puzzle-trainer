@@ -10,6 +10,16 @@ interface PuzzleInfoProps {
   isFailed: boolean;
 }
 
+const PUZZLE_TYPE_LABELS: Record<string, string> = {
+  "Mate in One": "Mate in 1",
+  "Mate in Two": "Mate in 2",
+  "Mate in Three": "Mate in 3",
+};
+
+function formatPuzzleTypeLabel(type: string): string {
+  return PUZZLE_TYPE_LABELS[type] ?? type;
+}
+
 export function PuzzleInfo({
   puzzleId,
   puzzleType,
@@ -23,19 +33,14 @@ export function PuzzleInfo({
 
   return (
     <Panel className="ui-puzzle-info-panel">
-      <div className="ui-puzzle-id-group">
-        <div
-          className="ui-puzzle-number"
-          aria-label={`Puzzle ${puzzleId} of ${TOTAL_PUZZLES}`}
-        >
-          <span className="ui-puzzle-hash">#</span>
-          {puzzleId}
-          <span className="ui-puzzle-total"> / {TOTAL_PUZZLES}</span>
-        </div>
+      <div className="ui-puzzle-id-group" aria-label={`Puzzle ${puzzleId} of ${TOTAL_PUZZLES}`}>
+        <span className="ui-puzzle-hash">#</span>
+        <span className="ui-puzzle-number">{puzzleId}</span>
+        <span className="ui-puzzle-total">/ {TOTAL_PUZZLES.toLocaleString()}</span>
         <div className="ui-puzzle-source">Susan Polgar</div>
       </div>
       <div className="ui-puzzle-objective-group">
-        <div className="ui-puzzle-type">{puzzleType}</div>
+        <div className="ui-puzzle-type">{formatPuzzleTypeLabel(puzzleType)}</div>
         {!isComplete && (
           <div className="ui-puzzle-side">
             {sideToMove.replace(" to Move", " to move")}

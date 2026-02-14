@@ -36,7 +36,6 @@ export function ActionBar({
       <div className="ui-action-bar-center" role="group" aria-label="Hint and reset actions">
         <Button
           className="ui-action-bar-center-btn ui-action-bar-hint"
-          variant="primary"
           disabled={isHintDisabled}
           onClick={onHint}
         >

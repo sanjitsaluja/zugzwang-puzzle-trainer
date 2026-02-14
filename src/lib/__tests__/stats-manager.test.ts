@@ -185,6 +185,59 @@ describe("StatsManager", () => {
     manager.dispose();
   });
 
+  it("flushes pending writes on dispose and cancels stale scheduled saves", () => {
+    const manager = new StatsManager(provider);
+
+    manager.recordAttempt(1, 12000, true);
+    expect(readStoredStats()).toBeNull();
+
+    manager.dispose();
+    expect(readStoredStats()).toEqual({
+      currentPuzzle: 2,
+      bestStreak: 1,
+      history: [{ p: 1, t: Date.parse("2026-01-01T00:00:00.000Z"), ms: 12000, ok: true }],
+      retries: {},
+    });
+
+    const externalWrite = {
+      currentPuzzle: 7,
+      bestStreak: 4,
+      history: [{ p: 4, t: 300, ms: 9000, ok: true }],
+      retries: {},
+    };
+    localStorage.setItem(StatsManager.STORAGE_KEY, JSON.stringify(externalWrite));
+
+    vi.advanceTimersByTime(StatsManager.DEBOUNCE_MS + 1);
+    expect(readStoredStats()).toEqual(externalWrite);
+  });
+
+  it("supports provider updates without recreating manager state", () => {
+    const providerA: PuzzleDataProvider = {
+      getMateIn(): number {
+        return 1;
+      },
+      getTotalCount(): number {
+        return 5;
+      },
+    };
+    const providerB: PuzzleDataProvider = {
+      getMateIn(): number {
+        return 2;
+      },
+      getTotalCount(): number {
+        return 5;
+      },
+    };
+
+    const manager = new StatsManager(providerA);
+    manager.recordAttempt(1, 12000, true);
+    manager.setPuzzleDataProvider(providerB);
+
+    expect(manager.getStatsByType(1).solved).toBe(0);
+    expect(manager.getStatsByType(2).solved).toBe(1);
+    manager.dispose();
+  });
+
   it("loads persisted data and restores retries with puzzle id", () => {
     localStorage.setItem(
       StatsManager.STORAGE_KEY,

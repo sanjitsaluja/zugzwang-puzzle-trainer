@@ -141,10 +141,11 @@ export class StatsManager {
   bestStreak: number;
   history: Attempt[];
   retries: Map<number, Attempt[]>;
-  saveDebounced: () => void;
 
-  private readonly puzzleData: PuzzleDataProvider;
+  private puzzleData: PuzzleDataProvider;
   private readonly beforeUnloadHandler: () => void;
+  private saveTimeoutId: ReturnType<typeof setTimeout> | null;
+  private hasPendingWrite: boolean;
 
   constructor(puzzleData: PuzzleDataProvider) {
     this.puzzleData = puzzleData;
@@ -152,12 +153,9 @@ export class StatsManager {
     this.bestStreak = 0;
     this.history = [];
     this.retries = new Map();
-    this.beforeUnloadHandler = () => this.save();
-
-    this.saveDebounced = this._debounce(
-      () => this.save(),
-      StatsManager.DEBOUNCE_MS,
-    );
+    this.beforeUnloadHandler = () => this.flush();
+    this.saveTimeoutId = null;
+    this.hasPendingWrite = false;
     this._bindUnloadHandler();
   }
 
@@ -213,6 +211,8 @@ export class StatsManager {
       this.bestStreak = bestStreak;
       this.history = history;
       this.retries = retries;
+      this.hasPendingWrite = false;
+      this._clearScheduledSave();
     } catch (error) {
       console.error("Failed to load stats, resetting:", error);
       this.reset();
@@ -220,6 +220,57 @@ export class StatsManager {
   }
 
   save(): void {
+    this._clearScheduledSave();
+    this.hasPendingWrite = false;
+    this._writeToStorage();
+  }
+
+  flush(): void {
+    if (!this.hasPendingWrite) return;
+    this.save();
+  }
+
+  setPuzzleDataProvider(nextProvider: PuzzleDataProvider): void {
+    this.puzzleData = nextProvider;
+
+    const nextHistory = this.history.filter((attempt) =>
+      this._isKnownPuzzleId(attempt.puzzleId),
+    );
+
+    const nextRetries = new Map<number, Attempt[]>();
+    let retriesWerePruned = false;
+    for (const [puzzleId, attempts] of this.retries.entries()) {
+      if (!this._isKnownPuzzleId(puzzleId)) {
+        retriesWerePruned = true;
+        continue;
+      }
+      const nextAttempts = attempts.filter((attempt) => this._isKnownPuzzleId(attempt.puzzleId));
+      if (nextAttempts.length !== attempts.length) {
+        retriesWerePruned = true;
+      }
+      nextRetries.set(
+        puzzleId,
+        nextAttempts,
+      );
+    }
+
+    const previousCurrentPuzzle = this.currentPuzzle;
+    const wasPruned =
+      nextHistory.length !== this.history.length ||
+      nextRetries.size !== this.retries.size ||
+      retriesWerePruned;
+
+    this.history = nextHistory;
+    this.retries = nextRetries;
+    this.currentPuzzle = this._normalizeCurrentPuzzle(this.currentPuzzle);
+
+    if (wasPruned || this.currentPuzzle !== previousCurrentPuzzle) {
+      this.hasPendingWrite = true;
+      this._scheduleSave();
+    }
+  }
+
+  private _writeToStorage(): void {
     const data: StoredStats = {
       currentPuzzle: this.currentPuzzle,
       bestStreak: this.bestStreak,
@@ -240,6 +291,8 @@ export class StatsManager {
   }
 
   reset(): void {
+    this._clearScheduledSave();
+    this.hasPendingWrite = false;
     this.currentPuzzle = 1;
     this.bestStreak = 0;
     this.history = [];
@@ -268,7 +321,8 @@ export class StatsManager {
       this._updateBestStreak();
     }
 
-    this.saveDebounced();
+    this.hasPendingWrite = true;
+    this._scheduleSave();
   }
 
   getSolved(): number {
@@ -387,6 +441,8 @@ export class StatsManager {
   }
 
   dispose(): void {
+    this._clearScheduledSave();
+    this.flush();
     if (typeof window === "undefined") return;
     window.removeEventListener("beforeunload", this.beforeUnloadHandler);
   }
@@ -449,15 +505,18 @@ export class StatsManager {
     return Math.round(((lastAvg - firstAvg) / firstAvg) * 100);
   }
 
-  private _debounce(fn: () => void, ms: number): () => void {
-    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  private _scheduleSave(): void {
+    this._clearScheduledSave();
+    this.saveTimeoutId = setTimeout(() => {
+      this.saveTimeoutId = null;
+      this.flush();
+    }, StatsManager.DEBOUNCE_MS);
+  }
 
-    return () => {
-      if (timeoutId !== undefined) {
-        clearTimeout(timeoutId);
-      }
-      timeoutId = setTimeout(() => fn(), ms);
-    };
+  private _clearScheduledSave(): void {
+    if (this.saveTimeoutId === null) return;
+    clearTimeout(this.saveTimeoutId);
+    this.saveTimeoutId = null;
   }
 
   private _bindUnloadHandler(): void {

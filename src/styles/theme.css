@@ -1308,11 +1308,15 @@
     }
 
     .ui-action-bar-nav-group {
-      gap: var(--space-1);
+      display: contents;
     }
 
     .ui-action-bar-divider {
       display: none;
+    }
+
+    .ui-action-bar-prev {
+      order: 1;
     }
 
     .ui-action-bar-nav-arrow {
@@ -1329,6 +1333,11 @@
     .ui-action-bar-center {
       flex: 1;
       min-width: 0;
+      order: 2;
+    }
+
+    .ui-action-bar-next {
+      order: 3;
     }
 
     .ui-action-bar-center-btn {

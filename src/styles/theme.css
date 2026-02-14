@@ -192,33 +192,40 @@
   }
 
   .ui-action-bar {
-    align-items: stretch;
+    align-items: center;
+    background: var(--color-bg-panel);
+    border: var(--border-width-1) solid var(--color-border-default);
+    border-radius: var(--radius-lg);
     display: flex;
     gap: var(--space-2);
-    padding-top: var(--space-2);
+    padding: var(--space-2);
   }
 
-  .ui-action-bar-button {
+  .ui-action-bar-nav-arrow {
+    align-items: center;
+    display: inline-flex;
+    flex: 0 0 auto;
+    font-size: var(--text-size-heading-sm);
+    height: 3rem;
+    justify-content: center;
+    min-width: 3rem;
+    padding: 0;
+  }
+
+  .ui-action-bar-center {
+    display: flex;
     flex: 1;
-  }
-
-  .ui-action-bar-nav {
-    display: flex;
-    flex: 1 1 auto;
     gap: var(--space-2);
   }
 
-  .ui-action-bar-util {
-    display: flex;
+  .ui-action-bar-center-btn {
+    align-items: center;
+    display: inline-flex;
+    flex: 1;
     gap: var(--space-2);
-  }
-
-  .ui-action-bar-icon {
-    display: none;
-  }
-
-  .ui-action-bar-next {
-    flex: 2;
+    justify-content: center;
+    min-height: 3rem;
+    white-space: nowrap;
   }
 
   .ui-metric-card {
@@ -787,30 +794,27 @@
     }
 
     .ui-action-bar {
-      justify-content: space-between;
-      padding-bottom: var(--size-safe-area-bottom);
+      border-radius: var(--radius-xl);
+      margin-bottom: var(--size-safe-area-bottom);
+      padding: var(--space-2);
     }
 
-    .ui-action-bar-nav {
-      flex: 1;
-      gap: 0;
+    .ui-action-bar-nav-arrow {
+      border-radius: var(--radius-md);
+      min-width: 2.75rem;
     }
 
-    .ui-action-bar-back,
-    .ui-action-bar-next {
-      border-radius: 0;
-      flex: 1 1 0;
+    .ui-action-bar-center-btn {
+      border-radius: var(--radius-md);
+      min-height: 2.75rem;
     }
 
-    .ui-action-bar-back {
-      border-bottom-left-radius: var(--radius-sm);
-      border-right: none;
-      border-top-left-radius: var(--radius-sm);
+    .ui-action-bar-hint {
+      font-weight: 600;
     }
 
-    .ui-action-bar-next {
-      border-bottom-right-radius: var(--radius-sm);
-      border-top-right-radius: var(--radius-sm);
+    .ui-action-bar-reset {
+      color: var(--color-fg-secondary);
     }
 
     .ui-stats-overlay {

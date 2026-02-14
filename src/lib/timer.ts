@@ -49,6 +49,14 @@ export class PuzzleTimer {
     this.onTick(0);
   }
 
+  hydrate(elapsedMs: number, isRunning: boolean): void {
+    const normalizedElapsed = Math.max(0, elapsedMs);
+    this.reset();
+    this.accumulated = normalizedElapsed;
+    this.onTick(this.accumulated);
+    if (isRunning) this.start();
+  }
+
   dispose(): void {
     if (this.intervalId !== null) {
       clearInterval(this.intervalId);

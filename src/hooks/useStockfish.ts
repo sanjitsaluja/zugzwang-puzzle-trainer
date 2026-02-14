@@ -13,7 +13,13 @@ type EngineStatus = "loading" | "ready" | "error";
 interface UseStockfishReturn {
   status: EngineStatus;
   error: string | null;
-  createEngineStrategy: (solution: ParsedMove[]) => PuzzleStrategy;
+  createEngineStrategy: (
+    solution: ParsedMove[],
+    options?: {
+      initialSolutionIndex?: number;
+      onSolutionIndexChange?: (index: number) => void;
+    },
+  ) => PuzzleStrategy;
 }
 
 function isCorrectMove(result: AnalysisResult, remainingMateDepth: number): boolean {
@@ -53,16 +59,26 @@ export function useStockfish(): UseStockfishReturn {
     };
   }, []);
 
-  const createEngineStrategy = (solution: ParsedMove[]): PuzzleStrategy => {
+  const createEngineStrategy = (
+    solution: ParsedMove[],
+    options?: {
+      initialSolutionIndex?: number;
+      onSolutionIndexChange?: (index: number) => void;
+    },
+  ): PuzzleStrategy => {
     const engine = engineRef.current;
     if (!engine || !engine.isReady) {
       throw new Error("Engine not ready");
     }
 
-    let solutionIndex = 0;
+    let solutionIndex = options?.initialSolutionIndex ?? 0;
+    const setSolutionIndex = (next: number) => {
+      solutionIndex = next;
+      options?.onSolutionIndexChange?.(next);
+    };
 
     const validateMove: ValidateMoveFn = async (_fen, userMove, remainingMateDepth) => {
-      solutionIndex++;
+      setSolutionIndex(solutionIndex + 1);
 
       console.log(`[engineStrategy] validateMove: fen=${_fen.slice(0, 40)}... remaining=${remainingMateDepth}`);
       const result = await engine.analyze(_fen);
@@ -75,7 +91,7 @@ export function useStockfish(): UseStockfishReturn {
         return { isCorrect: false, opponentMove };
       }
 
-      if (opponentMove) solutionIndex++;
+      if (opponentMove) setSolutionIndex(solutionIndex + 1);
 
       return { isCorrect: true, opponentMove };
     };

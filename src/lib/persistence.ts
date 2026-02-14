@@ -25,6 +25,7 @@ export function defaultPuzzleState(): PuzzleState {
     attempts: 0,
     successCount: 0,
     failCount: 0,
+    hintCount: 0,
   };
 }
 
@@ -69,6 +70,7 @@ export function computeStats(puzzles: Record<number, PuzzleState>): DerivedStats
 
   const totalAttempted = attempted.length;
   const totalSolved = solved.length;
+  const totalHintsUsed = entries.reduce((sum, puzzle) => sum + puzzle.hintCount, 0);
 
   return {
     totalAttempted,
@@ -78,6 +80,7 @@ export function computeStats(puzzles: Record<number, PuzzleState>): DerivedStats
       solveTimes.length > 0
         ? solveTimes.reduce((sum, t) => sum + t, 0) / solveTimes.length
         : null,
+    totalHintsUsed,
   };
 }
 

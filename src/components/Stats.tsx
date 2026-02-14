@@ -135,6 +135,7 @@ export function StatsContent({
           <MetricCard label="Failed" value={failedCount} />
           <MetricCard label="Success rate" value={`${successPercent}%`} />
           <MetricCard label="Average solve time" value={averageSolveTime} />
+          <MetricCard label="Hints used" value={stats.totalHintsUsed} />
           <MetricCard label="Total attempts" value={totalAttempts} />
           <MetricCard label="Extra retries" value={extraRetries} />
         </div>

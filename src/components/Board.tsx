@@ -16,6 +16,8 @@ interface BoardProps {
   interactive: boolean;
   lastMove?: [string, string];
   check?: BoardColor | false;
+  hintFrom?: string;
+  hintTo?: string;
   onMove: (from: string, to: string) => void;
 }
 
@@ -29,6 +31,14 @@ function toKeyDests(dests: Map<string, string[]>): Map<Key, Key[]> {
   return keyDests;
 }
 
+function toHintShapes(hintFrom: string | undefined, hintTo: string | undefined) {
+  if (!hintFrom) return [];
+  if (hintTo) {
+    return [{ orig: hintFrom as Key, dest: hintTo as Key, brush: "green" as const }];
+  }
+  return [{ orig: hintFrom as Key, brush: "green" as const }];
+}
+
 export function Board({
   fen,
   orientation,
@@ -37,6 +47,8 @@ export function Board({
   interactive,
   lastMove,
   check,
+  hintFrom,
+  hintTo,
   onMove,
 }: BoardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -71,6 +83,11 @@ export function Board({
       premovable: { enabled: false },
       predroppable: { enabled: false },
       highlight: { lastMove: true, check: true },
+      drawable: {
+        enabled: false,
+        visible: true,
+        autoShapes: toHintShapes(hintFrom, hintTo),
+      },
     });
 
     apiRef.current = api;
@@ -91,8 +108,11 @@ export function Board({
       },
       draggable: { enabled: interactive },
       selectable: { enabled: interactive },
+      drawable: {
+        autoShapes: toHintShapes(hintFrom, hintTo),
+      },
     });
-  }, [fen, orientation, turnColor, dests, interactive, lastMove, check]);
+  }, [fen, orientation, turnColor, dests, interactive, lastMove, check, hintFrom, hintTo]);
 
   return <div ref={containerRef} className="ui-board-root" />;
 }

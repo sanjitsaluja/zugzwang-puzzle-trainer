@@ -82,7 +82,6 @@ export function App() {
   const sideToMove = puzzle.puzzleData?.first ?? "";
   const isComplete = puzzle.phase === "complete";
   const isFirstPuzzle = puzzle.currentPuzzleId <= 1;
-  const canAdvance = isComplete && !puzzle.isLastPuzzle;
 
   const boardVisualState: BoardVisualState = isComplete
     ? puzzle.isFailed
@@ -95,6 +94,9 @@ export function App() {
   const boardPulseVariant = boardPulseKind ? pulseVariant : null;
 
   const boardLastMove = puzzle.lastMove;
+  const hintFrom = puzzle.hintMove && puzzle.hintStep >= 1 ? puzzle.hintMove.from : undefined;
+  const hintTo = puzzle.hintMove && puzzle.hintStep >= 2 ? puzzle.hintMove.to : undefined;
+
   const handleBack = () => {
     if (isFirstPuzzle) return;
     const targetPuzzleId = puzzle.currentPuzzleId - 1;
@@ -102,10 +104,16 @@ export function App() {
     navigate(`/puzzle/${targetPuzzleId}`);
   };
   const handleNext = () => {
-    if (!canAdvance) return;
+    if (puzzle.isLastPuzzle) return;
     const targetPuzzleId = puzzle.currentPuzzleId + 1;
     puzzle.nextPuzzle();
     navigate(`/puzzle/${targetPuzzleId}`);
+  };
+  const handleHint = () => {
+    void puzzle.requestHint();
+  };
+  const handleReset = () => {
+    puzzle.resetCurrentPuzzle();
   };
   const handleOpenMenu = () => {
     setIsMenuOpen(true);
@@ -165,6 +173,8 @@ export function App() {
               interactive={puzzle.isInteractive}
               {...(boardLastMove ? { lastMove: boardLastMove } : {})}
               check={deriveCheckColor(puzzle.isCheck, puzzle.turnColor)}
+              {...(hintFrom ? { hintFrom } : {})}
+              {...(hintTo ? { hintTo } : {})}
               onMove={puzzle.makeMove}
             />
           </div>
@@ -179,13 +189,15 @@ export function App() {
 
         <div className="ui-layout-actions">
           <ActionBar
-            isBackDisabled={isFirstPuzzle}
-            isNextDisabled={!canAdvance}
-            isNextActive={canAdvance}
-            isComplete={isComplete}
-            isLastPuzzle={puzzle.isLastPuzzle}
-            onBack={handleBack}
+            isPrevDisabled={isFirstPuzzle}
+            isNextDisabled={puzzle.isLastPuzzle}
+            isHintDisabled={isComplete || puzzle.isHintLoading}
+            isResetDisabled={puzzle.isAtInitialState}
+            isHintBusy={puzzle.isHintLoading}
+            onPrev={handleBack}
             onNext={handleNext}
+            onHint={handleHint}
+            onReset={handleReset}
           />
         </div>
       </div>

@@ -84,6 +84,7 @@ export const PuzzleStateSchema = z.object({
   attempts: z.number().int().nonnegative(),
   successCount: z.number().int().nonnegative().default(0),
   failCount: z.number().int().nonnegative().default(0),
+  hintCount: z.number().int().nonnegative().default(0),
 });
 export type PuzzleState = z.infer<typeof PuzzleStateSchema>;
 
@@ -131,4 +132,5 @@ export interface DerivedStats {
   totalSolved: number;
   successRate: number;
   averageSolveTimeMs: number | null;
+  totalHintsUsed: number;
 }

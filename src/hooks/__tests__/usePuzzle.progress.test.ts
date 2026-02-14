@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildCompletionProgressUpdate,
   buildFailureProgressUpdate,
+  buildHintProgressUpdate,
 } from "../usePuzzle";
 import type { PuzzleState } from "@/types";
 
@@ -13,6 +14,7 @@ describe("usePuzzle progress updates", () => {
       attempts: 0,
       successCount: 0,
       failCount: 1,
+      hintCount: 0,
     };
 
     expect(buildFailureProgressUpdate(previous)).toEqual({
@@ -28,6 +30,7 @@ describe("usePuzzle progress updates", () => {
       attempts: 2,
       successCount: 0,
       failCount: 3,
+      hintCount: 0,
     };
 
     expect(buildCompletionProgressUpdate(previous, false, 8000)).toEqual({
@@ -46,6 +49,7 @@ describe("usePuzzle progress updates", () => {
       attempts: 4,
       successCount: 1,
       failCount: 3,
+      hintCount: 2,
     };
 
     expect(buildCompletionProgressUpdate(previous, true, 5000)).toEqual({
@@ -54,6 +58,21 @@ describe("usePuzzle progress updates", () => {
       attempts: 5,
       successCount: 2,
       failCount: 3,
+    });
+  });
+
+  it("increments hintCount when hint is used", () => {
+    const previous: PuzzleState = {
+      status: "fail",
+      timeMs: 12000,
+      attempts: 4,
+      successCount: 1,
+      failCount: 3,
+      hintCount: 2,
+    };
+
+    expect(buildHintProgressUpdate(previous)).toEqual({
+      hintCount: 3,
     });
   });
 });

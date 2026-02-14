@@ -96,6 +96,27 @@ describe("PuzzleTimer", () => {
     });
   });
 
+  describe("hydrate", () => {
+    it("restores elapsed time without running", () => {
+      const timer = new PuzzleTimer(() => {});
+      timer.hydrate(2300, false);
+
+      expect(timer.elapsedMs).toBe(2300);
+      expect(timer.isRunning).toBe(false);
+    });
+
+    it("restores elapsed time and resumes running when requested", () => {
+      const timer = new PuzzleTimer(() => {});
+      timer.hydrate(1200, true);
+
+      vi.advanceTimersByTime(300);
+      const elapsed = timer.stop();
+
+      expect(elapsed).toBe(1500);
+      expect(timer.isRunning).toBe(false);
+    });
+  });
+
   describe("onTick callback", () => {
     it("fires at regular intervals while running", () => {
       const ticks: number[] = [];

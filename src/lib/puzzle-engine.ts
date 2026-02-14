@@ -23,6 +23,14 @@ export interface FeedbackEvent {
   kind: FeedbackKind;
 }
 
+export interface PuzzleResumeState {
+  fen: string;
+  phase: "playing" | "complete";
+  isFailed: boolean;
+  moveHistory: MoveRecord[];
+  lastMove?: [string, string];
+}
+
 const OPPONENT_DELAY_MS = 400;
 const VALID_PROMOTIONS = new Set<string>(PROMOTION_PIECES);
 
@@ -87,21 +95,38 @@ export class PuzzleEngine {
     return this.turnColor === this.orientation;
   }
 
-  loadPuzzle(puzzle: PuzzleData, strategy: PuzzleStrategy): void {
+  loadPuzzle(
+    puzzle: PuzzleData,
+    strategy: PuzzleStrategy,
+    resumeState?: PuzzleResumeState,
+  ): void {
     this.clearOpponentTimeout();
     this.puzzleGeneration++;
-    this.game = new ChessGame(puzzle.fen);
+    this.game = new ChessGame(resumeState?.fen ?? puzzle.fen);
     this.strategy = strategy;
-    this.userMoveCount = 0;
+    this.userMoveCount =
+      resumeState?.moveHistory.reduce(
+        (plyCount, record) => plyCount + 1 + (record.opponentMove ? 1 : 0),
+        0,
+      ) ?? 0;
     this.totalMateDepth = mateDepthFromType(puzzle.type);
-    this._phase = "playing";
-    this._isFailed = false;
-    this._moveHistory = [];
-    this._lastMove = undefined;
+    this._phase = resumeState?.phase ?? "playing";
+    this._isFailed = resumeState?.isFailed ?? false;
+    this._moveHistory = resumeState?.moveHistory.map((record) => ({
+      ...record,
+      userMove: { ...record.userMove },
+      ...(record.opponentMove ? { opponentMove: { ...record.opponentMove } } : {}),
+    })) ?? [];
+    this._lastMove = resumeState?.lastMove;
     this._puzzleData = puzzle;
     this._feedbackEvent = null;
     this.pendingMoveRecord = null;
     this.onChange();
+  }
+
+  async suggestMove(): Promise<ParsedMove | null> {
+    if (!this.game || !this.strategy) return null;
+    return this.strategy.getOpponentMove(this.game.fen);
   }
 
   async makeMove(from: string, to: string, promotion?: string): Promise<void> {

@@ -32,6 +32,7 @@ describe("defaults", () => {
     expect(ps.attempts).toBe(0);
     expect(ps.successCount).toBe(0);
     expect(ps.failCount).toBe(0);
+    expect(ps.hintCount).toBe(0);
   });
 });
 
@@ -44,8 +45,8 @@ describe("save and load", () => {
     const state: AppState = {
       currentPuzzleId: 42,
       puzzles: {
-        1: { status: "success", timeMs: 5000, attempts: 1, successCount: 1, failCount: 0 },
-        2: { status: "fail", timeMs: 12000, attempts: 3, successCount: 1, failCount: 2 },
+        1: { status: "success", timeMs: 5000, attempts: 1, successCount: 1, failCount: 0, hintCount: 1 },
+        2: { status: "fail", timeMs: 12000, attempts: 3, successCount: 1, failCount: 2, hintCount: 2 },
       },
       settings: { engineEnabled: false },
     };
@@ -101,6 +102,7 @@ describe("save and load", () => {
               attempts: 0,
               successCount: 0,
               failCount: 0,
+              hintCount: 0,
             },
           },
           settings: { engineEnabled: true },
@@ -149,12 +151,13 @@ describe("computeStats", () => {
     expect(stats.totalSolved).toBe(0);
     expect(stats.successRate).toBe(0);
     expect(stats.averageSolveTimeMs).toBeNull();
+    expect(stats.totalHintsUsed).toBe(0);
   });
 
   it("ignores unattempted puzzles", () => {
     const puzzles: Record<number, PuzzleState> = {
-      1: { status: "unattempted", timeMs: null, attempts: 0, successCount: 0, failCount: 0 },
-      2: { status: "unattempted", timeMs: null, attempts: 0, successCount: 0, failCount: 0 },
+      1: { status: "unattempted", timeMs: null, attempts: 0, successCount: 0, failCount: 0, hintCount: 0 },
+      2: { status: "unattempted", timeMs: null, attempts: 0, successCount: 0, failCount: 0, hintCount: 0 },
     };
     const stats = computeStats(puzzles);
     expect(stats.totalAttempted).toBe(0);
@@ -162,10 +165,10 @@ describe("computeStats", () => {
 
   it("computes correct stats for mixed results", () => {
     const puzzles: Record<number, PuzzleState> = {
-      1: { status: "success", timeMs: 4000, attempts: 1, successCount: 1, failCount: 0 },
-      2: { status: "success", timeMs: 6000, attempts: 1, successCount: 1, failCount: 0 },
-      3: { status: "fail", timeMs: 10000, attempts: 2, successCount: 1, failCount: 1 },
-      4: { status: "unattempted", timeMs: null, attempts: 0, successCount: 0, failCount: 0 },
+      1: { status: "success", timeMs: 4000, attempts: 1, successCount: 1, failCount: 0, hintCount: 1 },
+      2: { status: "success", timeMs: 6000, attempts: 1, successCount: 1, failCount: 0, hintCount: 2 },
+      3: { status: "fail", timeMs: 10000, attempts: 2, successCount: 1, failCount: 1, hintCount: 3 },
+      4: { status: "unattempted", timeMs: null, attempts: 0, successCount: 0, failCount: 0, hintCount: 0 },
     };
     const stats = computeStats(puzzles);
 
@@ -173,11 +176,12 @@ describe("computeStats", () => {
     expect(stats.totalSolved).toBe(2);
     expect(stats.successRate).toBeCloseTo(2 / 3);
     expect(stats.averageSolveTimeMs).toBe(5000);
+    expect(stats.totalHintsUsed).toBe(6);
   });
 
   it("handles success with null timeMs", () => {
     const puzzles: Record<number, PuzzleState> = {
-      1: { status: "success", timeMs: null, attempts: 1, successCount: 1, failCount: 0 },
+      1: { status: "success", timeMs: null, attempts: 1, successCount: 1, failCount: 0, hintCount: 1 },
     };
     const stats = computeStats(puzzles);
     expect(stats.totalSolved).toBe(1);
@@ -206,6 +210,7 @@ describe("computeStats", () => {
       attempts: 2,
       successCount: 0,
       failCount: 0,
+      hintCount: 0,
     });
   });
 });

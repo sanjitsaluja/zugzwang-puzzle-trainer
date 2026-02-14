@@ -1,39 +1,63 @@
 import { Button } from "@/components/ui/Button";
 
 interface ActionBarProps {
-  isBackDisabled: boolean;
+  isPrevDisabled: boolean;
   isNextDisabled: boolean;
-  isNextActive: boolean;
-  isComplete: boolean;
-  isLastPuzzle: boolean;
-  onBack: () => void;
+  isHintDisabled: boolean;
+  isResetDisabled: boolean;
+  isHintBusy: boolean;
+  onPrev: () => void;
   onNext: () => void;
+  onHint: () => void;
+  onReset: () => void;
 }
 
 export function ActionBar({
-  isBackDisabled,
+  isPrevDisabled,
   isNextDisabled,
-  isNextActive,
-  isComplete,
-  isLastPuzzle,
-  onBack,
+  isHintDisabled,
+  isResetDisabled,
+  isHintBusy,
+  onPrev,
   onNext,
+  onHint,
+  onReset,
 }: ActionBarProps) {
   return (
-    <div className="ui-action-bar">
-      <div className="ui-action-bar-nav" role="group" aria-label="Puzzle navigation">
-        <Button className="ui-action-bar-button ui-action-bar-back" disabled={isBackDisabled} onClick={onBack}>
-          ← Back
+    <div className="ui-action-bar" role="toolbar" aria-label="Puzzle controls">
+      <Button
+        className="ui-action-bar-nav-arrow ui-action-bar-prev"
+        aria-label="Previous puzzle"
+        disabled={isPrevDisabled}
+        onClick={onPrev}
+      >
+        ←
+      </Button>
+      <div className="ui-action-bar-center" role="group" aria-label="Hint and reset actions">
+        <Button
+          className="ui-action-bar-center-btn ui-action-bar-hint"
+          variant="primary"
+          disabled={isHintDisabled}
+          onClick={onHint}
+        >
+          💡 {isHintBusy ? "Thinking..." : "Hint"}
         </Button>
         <Button
-          className="ui-action-bar-button ui-action-bar-next"
-          variant={isNextActive ? "primary" : "default"}
-          disabled={isNextDisabled}
-          onClick={onNext}
+          className="ui-action-bar-center-btn ui-action-bar-reset"
+          disabled={isResetDisabled}
+          onClick={onReset}
         >
-          {isLastPuzzle && isComplete ? "All puzzles complete!" : "Next →"}
+          ↺ Reset
         </Button>
       </div>
+      <Button
+        className="ui-action-bar-nav-arrow ui-action-bar-next"
+        aria-label="Next puzzle"
+        disabled={isNextDisabled}
+        onClick={onNext}
+      >
+        →
+      </Button>
     </div>
   );
 }

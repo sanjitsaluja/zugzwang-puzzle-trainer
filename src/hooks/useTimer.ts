@@ -25,6 +25,10 @@ export function useTimer() {
     timerRef.current?.reset();
   }, []);
 
+  const hydrate = useCallback((nextElapsedMs: number, shouldRun: boolean) => {
+    timerRef.current?.hydrate(nextElapsedMs, shouldRun);
+  }, []);
+
   return {
     elapsedMs,
     formatted: PuzzleTimer.formatTime(elapsedMs),
@@ -32,5 +36,6 @@ export function useTimer() {
     start,
     stop,
     reset,
+    hydrate,
   };
 }

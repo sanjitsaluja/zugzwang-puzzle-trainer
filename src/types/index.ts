@@ -88,8 +88,31 @@ export const PuzzleStateSchema = z.object({
 });
 export type PuzzleState = z.infer<typeof PuzzleStateSchema>;
 
+export const PIECE_SETS = ["cburnett", "merida", "alpha", "staunty"] as const;
+export type PieceSet = (typeof PIECE_SETS)[number];
+
+export const BOARD_THEMES = ["brown", "blue", "green", "gray"] as const;
+export type BoardTheme = (typeof BOARD_THEMES)[number];
+
+export const ANIMATION_SPEED_MIN_MS = 0;
+export const ANIMATION_SPEED_MAX_MS = 500;
+export const ANIMATION_SPEED_STEP_MS = 50;
+export type AnimationSpeedMs = number;
+
 export const AppSettingsSchema = z.object({
-  engineEnabled: z.boolean(),
+  pieceSet: z.enum(PIECE_SETS),
+  boardTheme: z.enum(BOARD_THEMES),
+  coordinates: z.boolean(),
+  showLegalMoves: z.boolean(),
+  highlightLastMove: z.boolean(),
+  animationSpeed: z
+    .number()
+    .int()
+    .min(ANIMATION_SPEED_MIN_MS)
+    .max(ANIMATION_SPEED_MAX_MS)
+    .refine((value) => value % ANIMATION_SPEED_STEP_MS === 0),
+  timer: z.boolean(),
+  soundEffects: z.boolean(),
 });
 export type AppSettings = z.infer<typeof AppSettingsSchema>;
 

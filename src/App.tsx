@@ -238,11 +238,13 @@ export function App() {
               <span>{currentStreak}</span>
             </div>
 
-            <Timer
-              formatted={puzzle.formattedTime}
-              phase={puzzle.phase}
-              isFailed={puzzle.isFailed}
-            />
+            {puzzle.settings.timer && (
+              <Timer
+                formatted={puzzle.formattedTime}
+                phase={puzzle.phase}
+                isFailed={puzzle.isFailed}
+              />
+            )}
 
             <button
               className="ui-header-menu-btn"
@@ -271,6 +273,12 @@ export function App() {
               turnColor={puzzle.turnColor}
               dests={puzzle.dests}
               interactive={puzzle.isInteractive}
+              pieceSet={puzzle.settings.pieceSet}
+              boardTheme={puzzle.settings.boardTheme}
+              coordinates={puzzle.settings.coordinates}
+              showLegalMoves={puzzle.settings.showLegalMoves}
+              highlightLastMove={puzzle.settings.highlightLastMove}
+              animationSpeed={puzzle.settings.animationSpeed}
               {...(boardLastMove ? { lastMove: boardLastMove } : {})}
               check={deriveCheckColor(puzzle.isCheck, puzzle.turnColor)}
               {...(hintFrom ? { hintFrom } : {})}

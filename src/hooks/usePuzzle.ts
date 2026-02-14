@@ -356,7 +356,6 @@ export function usePuzzle(options: UsePuzzleOptions = {}) {
   stockfishRef.current = stockfish;
 
   const engineSettled =
-    !state.settings.engineEnabled ||
     stockfish.status === "ready" ||
     stockfish.status === "error";
 
@@ -373,7 +372,7 @@ export function usePuzzle(options: UsePuzzleOptions = {}) {
 
     const solution = parseMoves(puzzle.moves);
     const sf = stockfishRef.current;
-    const useEngine = state.settings.engineEnabled && sf.status === "ready";
+    const useEngine = sf.status === "ready";
 
     const strategy: PuzzleStrategy = useEngine
       ? sf.createEngineStrategy(solution, {
@@ -400,7 +399,7 @@ export function usePuzzle(options: UsePuzzleOptions = {}) {
 
     console.log(`[usePuzzle] Loading puzzle #${puzzle.problemid} (${puzzle.type}), strategy=${useEngine ? "engine" : "solution"}`);
     engineRef.current?.loadPuzzle(puzzle, strategy, restoredEngineState);
-  }, [puzzles, state.currentPuzzleId, state.settings.engineEnabled, engineSettled]);
+  }, [puzzles, state.currentPuzzleId, engineSettled]);
 
   useEffect(() => {
     return () => engineRef.current?.dispose();
@@ -477,7 +476,7 @@ export function usePuzzle(options: UsePuzzleOptions = {}) {
 
     const solution = parseMoves(puzzleData.moves);
     const sf = stockfishRef.current;
-    const useEngine = state.settings.engineEnabled && sf.status === "ready";
+    const useEngine = sf.status === "ready";
     const strategy: PuzzleStrategy = useEngine
       ? sf.createEngineStrategy(solution, { initialSolutionIndex: 0 })
       : createSolutionStrategy(solution, { initialSolutionIndex: 0 });
@@ -492,7 +491,7 @@ export function usePuzzle(options: UsePuzzleOptions = {}) {
     };
 
     engineRef.current?.loadPuzzle(puzzleData, strategy);
-  }, [isAtInitialState, snapshot.puzzleData, state.settings.engineEnabled]);
+  }, [isAtInitialState, snapshot.puzzleData]);
 
   const isLastPuzzle = state.currentPuzzleId >= TOTAL_PUZZLES;
 
@@ -534,6 +533,7 @@ export function usePuzzle(options: UsePuzzleOptions = {}) {
   return {
     ...snapshot,
     currentPuzzleId: state.currentPuzzleId,
+    settings: state.settings,
     elapsedMs: timer.elapsedMs,
     formattedTime: timer.formatted,
     makeMove,

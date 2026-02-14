@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { Chessground } from "@lichess-org/chessground";
 import type { Api } from "@lichess-org/chessground/dist/api";
 import type { Key } from "@lichess-org/chessground/dist/types";
-import type { BoardColor } from "@/types";
+import type { AnimationSpeedMs, BoardColor, BoardTheme, PieceSet } from "@/types";
 
 import "@lichess-org/chessground/assets/chessground.base.css";
 import "@lichess-org/chessground/assets/chessground.brown.css";
@@ -14,14 +14,18 @@ interface BoardProps {
   turnColor: BoardColor;
   dests: Map<string, string[]>;
   interactive: boolean;
+  pieceSet: PieceSet;
+  boardTheme: BoardTheme;
+  coordinates: boolean;
+  showLegalMoves: boolean;
+  highlightLastMove: boolean;
+  animationSpeed: AnimationSpeedMs;
   lastMove?: [string, string];
   check?: BoardColor | false;
   hintFrom?: string;
   hintTo?: string;
   onMove: (from: string, to: string) => void;
 }
-
-const ANIMATION_DURATION = 200;
 
 function toKeyDests(dests: Map<string, string[]>): Map<Key, Key[]> {
   const keyDests = new Map<Key, Key[]>();
@@ -45,6 +49,12 @@ export function Board({
   turnColor,
   dests,
   interactive,
+  pieceSet,
+  boardTheme,
+  coordinates,
+  showLegalMoves,
+  highlightLastMove,
+  animationSpeed,
   lastMove,
   check,
   hintFrom,
@@ -65,13 +75,16 @@ export function Board({
       turnColor,
       check: check || false,
       lastMove: lastMove as [Key, Key] | undefined,
-      coordinates: true,
-      animation: { enabled: true, duration: ANIMATION_DURATION },
+      coordinates,
+      animation: {
+        enabled: animationSpeed > 0,
+        duration: animationSpeed,
+      },
       movable: {
         free: false,
         color: interactive ? turnColor : undefined,
         dests: toKeyDests(dests),
-        showDests: true,
+        showDests: showLegalMoves,
         events: {
           after(orig, dest) {
             onMoveRef.current(orig, dest);
@@ -82,7 +95,7 @@ export function Board({
       selectable: { enabled: interactive },
       premovable: { enabled: false },
       predroppable: { enabled: false },
-      highlight: { lastMove: true, check: true },
+      highlight: { lastMove: highlightLastMove, check: true },
       drawable: {
         enabled: false,
         visible: true,
@@ -101,18 +114,39 @@ export function Board({
       turnColor,
       check: check || false,
       lastMove: lastMove as [Key, Key] | undefined,
+      coordinates,
+      animation: {
+        enabled: animationSpeed > 0,
+        duration: animationSpeed,
+      },
       movable: {
         free: false,
         color: interactive ? turnColor : undefined,
         dests: toKeyDests(dests),
+        showDests: showLegalMoves,
       },
       draggable: { enabled: interactive },
       selectable: { enabled: interactive },
+      highlight: { lastMove: highlightLastMove, check: true },
       drawable: {
         autoShapes: toHintShapes(hintFrom, hintTo),
       },
     });
-  }, [fen, orientation, turnColor, dests, interactive, lastMove, check, hintFrom, hintTo]);
+  }, [
+    fen,
+    orientation,
+    turnColor,
+    dests,
+    interactive,
+    coordinates,
+    showLegalMoves,
+    highlightLastMove,
+    animationSpeed,
+    lastMove,
+    check,
+    hintFrom,
+    hintTo,
+  ]);
 
   useEffect(() => {
     const node = containerRef.current;
@@ -126,5 +160,12 @@ export function Board({
     return () => observer.disconnect();
   }, []);
 
-  return <div ref={containerRef} className="ui-board-root" />;
+  return (
+    <div
+      ref={containerRef}
+      className={`ui-board-root ui-board-theme-${boardTheme} ui-piece-set-${pieceSet}`}
+      data-board-theme={boardTheme}
+      data-piece-set={pieceSet}
+    />
+  );
 }

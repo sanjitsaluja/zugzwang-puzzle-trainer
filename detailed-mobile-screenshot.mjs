@@ -16,8 +16,6 @@ async function captureDetailedScreenshot() {
   const measurements = await mobilePage.evaluate(() => {
     const header = document.querySelector('header');
     const board = document.querySelector('[class*="board"]') || document.querySelector('.chessboard');
-    const puzzleNumber = document.querySelector('[class*="puzzle"]');
-    const timer = document.querySelector('[class*="timer"]');
     
     const headerRect = header?.getBoundingClientRect();
     const boardRect = board?.getBoundingClientRect();
@@ -31,10 +29,10 @@ async function captureDetailedScreenshot() {
         null
       );
       
-      let node;
-      while (node = walker.nextNode()) {
+      let node = walker.nextNode();
+      while (node) {
         const parent = node.parentElement;
-        if (node.textContent.trim()) {
+        if (node.textContent?.trim()) {
           const rect = parent.getBoundingClientRect();
           const styles = window.getComputedStyle(parent);
           headerElements.push({
@@ -46,6 +44,7 @@ async function captureDetailedScreenshot() {
             left: rect.left
           });
         }
+        node = walker.nextNode();
       }
     }
     

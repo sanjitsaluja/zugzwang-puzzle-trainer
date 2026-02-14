@@ -1,20 +1,60 @@
-import { type AppState, type DerivedStats, type PuzzleState, AppStateSchema } from "@/types";
+import {
+  type AppSettings,
+  AppSettingsSchema,
+  type AppState,
+  AppStateSchema,
+  type DerivedStats,
+  type PuzzleState,
+} from "@/types";
 
-const STORAGE_KEY = "zugzwang-state";
+export const PROGRESS_STORAGE_KEY = "zugzwang-progress";
+export const SETTINGS_STORAGE_KEY = "zugzwang-settings";
+
 const SCHEMA_VERSION = 1;
+const AppProgressSchema = AppStateSchema.pick({
+  currentPuzzleId: true,
+  puzzles: true,
+});
 
-interface StoredState {
+type AppProgress = {
+  currentPuzzleId: AppState["currentPuzzleId"];
+  puzzles: AppState["puzzles"];
+};
+
+interface StoredEnvelope {
   version: number;
-  data: AppState;
+  data: unknown;
+}
+
+interface StoredProgress {
+  version: number;
+  data: AppProgress;
+}
+
+export function defaultAppSettings(): AppSettings {
+  return {
+    pieceSet: "cburnett",
+    boardTheme: "brown",
+    coordinates: true,
+    showLegalMoves: true,
+    highlightLastMove: true,
+    animationSpeed: 200,
+    timer: true,
+    soundEffects: true,
+  };
+}
+
+function defaultProgressState(): AppProgress {
+  return {
+    currentPuzzleId: 1,
+    puzzles: {},
+  };
 }
 
 export function defaultAppState(): AppState {
   return {
-    currentPuzzleId: 1,
-    puzzles: {},
-    settings: {
-      engineEnabled: true,
-    },
+    ...defaultProgressState(),
+    settings: defaultAppSettings(),
   };
 }
 
@@ -30,33 +70,31 @@ export function defaultPuzzleState(): PuzzleState {
 }
 
 export function loadAppState(): AppState {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw === null) return defaultAppState();
+  const progress = loadProgressState();
+  const settings = loadSettingsState();
 
-    const stored: unknown = JSON.parse(raw);
-    if (!isStoredState(stored)) return defaultAppState();
-    if (stored.version !== SCHEMA_VERSION) return migrateState(stored);
-
-    const result = AppStateSchema.safeParse(stored.data);
-    if (!result.success) return defaultAppState();
-
-    return result.data;
-  } catch {
-    return defaultAppState();
-  }
+  return {
+    ...progress,
+    settings,
+  };
 }
 
 export function saveAppState(state: AppState): void {
-  const stored: StoredState = {
+  const storedProgress: StoredProgress = {
     version: SCHEMA_VERSION,
-    data: state,
+    data: {
+      currentPuzzleId: state.currentPuzzleId,
+      puzzles: state.puzzles,
+    },
   };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+
+  localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(storedProgress));
+  localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(state.settings));
 }
 
 export function clearAppState(): void {
-  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(PROGRESS_STORAGE_KEY);
+  localStorage.removeItem(SETTINGS_STORAGE_KEY);
 }
 
 export function computeStats(puzzles: Record<number, PuzzleState>): DerivedStats {
@@ -84,12 +122,50 @@ export function computeStats(puzzles: Record<number, PuzzleState>): DerivedStats
   };
 }
 
-function isStoredState(value: unknown): value is StoredState {
+function isStoredEnvelope(value: unknown): value is StoredEnvelope {
   if (typeof value !== "object" || value === null) return false;
   const obj = value as Record<string, unknown>;
   return typeof obj["version"] === "number" && typeof obj["data"] === "object";
 }
 
-function migrateState(_stored: StoredState): AppState {
-  return defaultAppState();
+function parseSettings(value: unknown): AppSettings | null {
+  if (typeof value !== "object" || value === null) return null;
+
+  const result = AppSettingsSchema.safeParse({
+    ...defaultAppSettings(),
+    ...(value as Record<string, unknown>),
+  });
+
+  if (!result.success) return null;
+  return result.data;
+}
+
+function loadProgressState(): AppProgress {
+  try {
+    const raw = localStorage.getItem(PROGRESS_STORAGE_KEY);
+    if (raw === null) return defaultProgressState();
+
+    const stored: unknown = JSON.parse(raw);
+    if (!isStoredEnvelope(stored)) return defaultProgressState();
+    if (stored.version !== SCHEMA_VERSION) return defaultProgressState();
+
+    const result = AppProgressSchema.safeParse(stored.data);
+    if (!result.success) return defaultProgressState();
+
+    return result.data;
+  } catch {
+    return defaultProgressState();
+  }
+}
+
+function loadSettingsState(): AppSettings {
+  try {
+    const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    if (raw === null) return defaultAppSettings();
+
+    const stored: unknown = JSON.parse(raw);
+    return parseSettings(stored) ?? defaultAppSettings();
+  } catch {
+    return defaultAppSettings();
+  }
 }

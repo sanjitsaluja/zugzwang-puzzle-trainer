@@ -2,11 +2,19 @@ import { useEffect, useRef } from "react";
 import { Chessground } from "@lichess-org/chessground";
 import type { Api } from "@lichess-org/chessground/dist/api";
 import type { Key } from "@lichess-org/chessground/dist/types";
-import type { AnimationSpeedMs, BoardColor, BoardTheme, PieceSet } from "@/types";
+import {
+  BOARD_THEMES,
+  PIECE_SETS,
+  type AnimationSpeedMs,
+  type BoardColor,
+  type BoardTheme,
+  type PieceSet,
+} from "@/types";
 
 import "@lichess-org/chessground/assets/chessground.base.css";
 import "@lichess-org/chessground/assets/chessground.brown.css";
 import "@lichess-org/chessground/assets/chessground.cburnett.css";
+import "@/styles/chessground-piece-sets.css";
 
 interface BoardProps {
   fen: string;
@@ -63,6 +71,7 @@ export function Board({
 }: BoardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const apiRef = useRef<Api | null>(null);
+  const coordinatesRef = useRef(coordinates);
   const onMoveRef = useRef(onMove);
   onMoveRef.current = onMove;
 
@@ -108,7 +117,10 @@ export function Board({
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    apiRef.current?.set({
+    const api = apiRef.current;
+    if (!api) return;
+
+    api.set({
       fen,
       orientation,
       turnColor,
@@ -132,6 +144,12 @@ export function Board({
         autoShapes: toHintShapes(hintFrom, hintTo),
       },
     });
+
+    // Chessground updates coordinate labels only when wrapping DOM is rebuilt.
+    if (coordinatesRef.current !== coordinates) {
+      api.redrawAll();
+      coordinatesRef.current = coordinates;
+    }
   }, [
     fen,
     orientation,
@@ -160,10 +178,22 @@ export function Board({
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const node = containerRef.current;
+    if (!node) return;
+
+    for (const theme of BOARD_THEMES) {
+      node.classList.toggle(`ui-board-theme-${theme}`, theme === boardTheme);
+    }
+    for (const set of PIECE_SETS) {
+      node.classList.toggle(`ui-piece-set-${set}`, set === pieceSet);
+    }
+  }, [boardTheme, pieceSet]);
+
   return (
     <div
       ref={containerRef}
-      className={`ui-board-root ui-board-theme-${boardTheme} ui-piece-set-${pieceSet}`}
+      className="ui-board-root"
       data-board-theme={boardTheme}
       data-piece-set={pieceSet}
     />

@@ -161,7 +161,7 @@ function createSolutionStrategy(
 export type { MoveRecord };
 
 export function usePuzzle(options: UsePuzzleOptions = {}) {
-  const { state, updatePuzzle, setCurrentPuzzleId } = useAppState();
+  const { state, updatePuzzle, setCurrentPuzzleId, updateSettings } = useAppState();
   const timer = useTimer();
   const stockfish = useStockfish();
 
@@ -560,6 +560,7 @@ export function usePuzzle(options: UsePuzzleOptions = {}) {
     resetCurrentPuzzle,
     pauseTimer,
     resumeTimer,
+    updateSettings,
     isAtInitialState,
     isLastPuzzle,
     loadError,

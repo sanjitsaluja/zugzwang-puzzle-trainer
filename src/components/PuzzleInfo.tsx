@@ -20,6 +20,17 @@ function formatPuzzleTypeLabel(type: string): string {
   return PUZZLE_TYPE_LABELS[type] ?? type;
 }
 
+function normalizeSideLabel(sideToMove: string): string {
+  return sideToMove.replace(" to Move", " to move");
+}
+
+function resolveSideColor(sideToMove: string): "white" | "black" | null {
+  const normalized = sideToMove.toLowerCase();
+  if (normalized.includes("white")) return "white";
+  if (normalized.includes("black")) return "black";
+  return null;
+}
+
 export function PuzzleInfo({
   puzzleId,
   puzzleType,
@@ -30,6 +41,8 @@ export function PuzzleInfo({
   const isComplete = phase === "complete";
   const statusState = isComplete ? (isFailed ? "danger" : "success") : null;
   const statusLabel = isFailed ? "Failed" : "Solved";
+  const sideLabel = normalizeSideLabel(sideToMove);
+  const sideColor = resolveSideColor(sideToMove);
 
   return (
     <Panel className="ui-puzzle-info-panel">
@@ -42,8 +55,9 @@ export function PuzzleInfo({
       <div className="ui-puzzle-objective-group">
         <div className="ui-puzzle-type">{formatPuzzleTypeLabel(puzzleType)}</div>
         {!isComplete && (
-          <div className="ui-puzzle-side">
-            {sideToMove.replace(" to Move", " to move")}
+          <div className="ui-puzzle-side" data-color={sideColor ?? undefined} aria-label={sideLabel}>
+            {sideColor && <span className="ui-puzzle-side-indicator" aria-hidden="true" />}
+            <span className="ui-puzzle-side-text">{sideLabel}</span>
           </div>
         )}
         {statusState && (

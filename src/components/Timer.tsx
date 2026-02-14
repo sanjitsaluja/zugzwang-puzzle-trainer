@@ -35,7 +35,7 @@ export function Timer({ formatted, phase, isFailed }: TimerProps) {
       ? "danger"
       : "success"
     : "default";
-  const label = isComplete ? (isFailed ? "Time" : "Solve Time") : "time";
+  const label = "time";
 
   return (
     <Panel className="ui-panel-timer">

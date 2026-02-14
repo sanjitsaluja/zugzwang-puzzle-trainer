@@ -1,10 +1,11 @@
 import { createElement } from "react";
-import type { BoardColor, PromotionPiece } from "@/types";
+import type { BoardColor, PieceSet, PromotionPiece } from "@/types";
 import { FILES } from "@/types";
 
 interface PromotionPickerProps {
   orientation: BoardColor;
   color: BoardColor;
+  pieceSet: PieceSet;
   destination: string;
   options: PromotionPiece[];
   onSelect: (piece: PromotionPiece) => void;
@@ -68,6 +69,7 @@ function buildOptionSquares(
 export function PromotionPicker({
   orientation,
   color,
+  pieceSet,
   destination,
   options,
   onSelect,
@@ -91,7 +93,7 @@ export function PromotionPicker({
 
   return (
     <div
-      className="ui-promotion-overlay cg-wrap"
+      className={`ui-promotion-overlay cg-wrap ui-piece-set-${pieceSet}`}
       role="dialog"
       aria-label="Choose promotion piece"
       style={{

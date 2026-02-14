@@ -1,0 +1,76 @@
+/* Additional board theme and piece-set mappings for chessground. */
+
+.ui-board-theme-brown cg-board {
+  background-color: var(--color-board-theme-brown-light);
+  background-image: repeating-conic-gradient(
+    var(--color-board-theme-brown-dark) 0% 25%,
+    var(--color-board-theme-brown-light) 25% 50%
+  );
+  background-size: 25% 25%;
+}
+
+.ui-board-theme-blue cg-board {
+  background-color: var(--color-board-theme-blue-light);
+  background-image: repeating-conic-gradient(
+    var(--color-board-theme-blue-dark) 0% 25%,
+    var(--color-board-theme-blue-light) 25% 50%
+  );
+  background-size: 25% 25%;
+}
+
+.ui-board-theme-green cg-board {
+  background-color: var(--color-board-theme-green-light);
+  background-image: repeating-conic-gradient(
+    var(--color-board-theme-green-dark) 0% 25%,
+    var(--color-board-theme-green-light) 25% 50%
+  );
+  background-size: 25% 25%;
+}
+
+.ui-board-theme-gray cg-board {
+  background-color: var(--color-board-theme-gray-light);
+  background-image: repeating-conic-gradient(
+    var(--color-board-theme-gray-dark) 0% 25%,
+    var(--color-board-theme-gray-light) 25% 50%
+  );
+  background-size: 25% 25%;
+}
+
+.ui-piece-set-merida piece.king.white { background-image: url("../assets/pieces/merida/wK.svg"); }
+.ui-piece-set-merida piece.queen.white { background-image: url("../assets/pieces/merida/wQ.svg"); }
+.ui-piece-set-merida piece.rook.white { background-image: url("../assets/pieces/merida/wR.svg"); }
+.ui-piece-set-merida piece.bishop.white { background-image: url("../assets/pieces/merida/wB.svg"); }
+.ui-piece-set-merida piece.knight.white { background-image: url("../assets/pieces/merida/wN.svg"); }
+.ui-piece-set-merida piece.pawn.white { background-image: url("../assets/pieces/merida/wP.svg"); }
+.ui-piece-set-merida piece.king.black { background-image: url("../assets/pieces/merida/bK.svg"); }
+.ui-piece-set-merida piece.queen.black { background-image: url("../assets/pieces/merida/bQ.svg"); }
+.ui-piece-set-merida piece.rook.black { background-image: url("../assets/pieces/merida/bR.svg"); }
+.ui-piece-set-merida piece.bishop.black { background-image: url("../assets/pieces/merida/bB.svg"); }
+.ui-piece-set-merida piece.knight.black { background-image: url("../assets/pieces/merida/bN.svg"); }
+.ui-piece-set-merida piece.pawn.black { background-image: url("../assets/pieces/merida/bP.svg"); }
+
+.ui-piece-set-alpha piece.king.white { background-image: url("../assets/pieces/alpha/wK.svg"); }
+.ui-piece-set-alpha piece.queen.white { background-image: url("../assets/pieces/alpha/wQ.svg"); }
+.ui-piece-set-alpha piece.rook.white { background-image: url("../assets/pieces/alpha/wR.svg"); }
+.ui-piece-set-alpha piece.bishop.white { background-image: url("../assets/pieces/alpha/wB.svg"); }
+.ui-piece-set-alpha piece.knight.white { background-image: url("../assets/pieces/alpha/wN.svg"); }
+.ui-piece-set-alpha piece.pawn.white { background-image: url("../assets/pieces/alpha/wP.svg"); }
+.ui-piece-set-alpha piece.king.black { background-image: url("../assets/pieces/alpha/bK.svg"); }
+.ui-piece-set-alpha piece.queen.black { background-image: url("../assets/pieces/alpha/bQ.svg"); }
+.ui-piece-set-alpha piece.rook.black { background-image: url("../assets/pieces/alpha/bR.svg"); }
+.ui-piece-set-alpha piece.bishop.black { background-image: url("../assets/pieces/alpha/bB.svg"); }
+.ui-piece-set-alpha piece.knight.black { background-image: url("../assets/pieces/alpha/bN.svg"); }
+.ui-piece-set-alpha piece.pawn.black { background-image: url("../assets/pieces/alpha/bP.svg"); }
+
+.ui-piece-set-staunty piece.king.white { background-image: url("../assets/pieces/staunty/wK.svg"); }
+.ui-piece-set-staunty piece.queen.white { background-image: url("../assets/pieces/staunty/wQ.svg"); }
+.ui-piece-set-staunty piece.rook.white { background-image: url("../assets/pieces/staunty/wR.svg"); }
+.ui-piece-set-staunty piece.bishop.white { background-image: url("../assets/pieces/staunty/wB.svg"); }
+.ui-piece-set-staunty piece.knight.white { background-image: url("../assets/pieces/staunty/wN.svg"); }
+.ui-piece-set-staunty piece.pawn.white { background-image: url("../assets/pieces/staunty/wP.svg"); }
+.ui-piece-set-staunty piece.king.black { background-image: url("../assets/pieces/staunty/bK.svg"); }
+.ui-piece-set-staunty piece.queen.black { background-image: url("../assets/pieces/staunty/bQ.svg"); }
+.ui-piece-set-staunty piece.rook.black { background-image: url("../assets/pieces/staunty/bR.svg"); }
+.ui-piece-set-staunty piece.bishop.black { background-image: url("../assets/pieces/staunty/bB.svg"); }
+.ui-piece-set-staunty piece.knight.black { background-image: url("../assets/pieces/staunty/bN.svg"); }
+.ui-piece-set-staunty piece.pawn.black { background-image: url("../assets/pieces/staunty/bP.svg"); }

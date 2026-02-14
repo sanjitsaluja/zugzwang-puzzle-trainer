@@ -4,6 +4,7 @@ import type { StatsContentProps } from "@/components/Stats";
 import { StatsContent } from "@/components/Stats";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { Panel } from "@/components/ui/Panel";
+import type { AppSettings } from "@/types";
 
 const CLOSE_ANIMATION_MS = 150;
 const MENU_SEGMENTS = [
@@ -20,12 +21,20 @@ const DEFAULT_SCROLL_POSITIONS: Record<MenuTab, number> = {
 
 interface MenuModalProps extends StatsContentProps {
   open: boolean;
+  requestedTab: MenuTab;
+  onTabChange: (tab: MenuTab) => void;
   onClose: () => void;
+  settings: AppSettings;
+  onUpdateSettings: (update: Partial<AppSettings>) => void;
 }
 
 export function MenuModal({
   open,
+  requestedTab,
+  onTabChange,
   onClose,
+  settings,
+  onUpdateSettings,
   ...statsProps
 }: MenuModalProps) {
   const [isMounted, setIsMounted] = useState(open);
@@ -36,6 +45,7 @@ export function MenuModal({
   const statsBodyRef = useRef<HTMLElement | null>(null);
   const settingsBodyRef = useRef<HTMLDivElement | null>(null);
   const scrollByTabRef = useRef<Record<MenuTab, number>>({ ...DEFAULT_SCROLL_POSITIONS });
+  const wasOpenRef = useRef(open);
 
   const getScrollElement = useCallback((tab: MenuTab) => {
     return tab === "stats" ? statsBodyRef.current : settingsBodyRef.current;
@@ -60,11 +70,16 @@ export function MenuModal({
   }, [activeTab, getScrollElement]);
 
   useEffect(() => {
+    const wasOpen = wasOpenRef.current;
+    wasOpenRef.current = open;
+
     if (open) {
       setIsMounted(true);
       setIsClosing(false);
-      setActiveTab("stats");
-      scrollByTabRef.current = { ...DEFAULT_SCROLL_POSITIONS };
+      if (!wasOpen) {
+        setActiveTab(requestedTab);
+        scrollByTabRef.current = { ...DEFAULT_SCROLL_POSITIONS };
+      }
       return;
     }
     if (!isMounted) return;
@@ -76,7 +91,12 @@ export function MenuModal({
     }, CLOSE_ANIMATION_MS);
 
     return () => window.clearTimeout(timeoutId);
-  }, [isMounted, open]);
+  }, [isMounted, open, requestedTab]);
+
+  useEffect(() => {
+    if (!open) return;
+    setActiveTab(requestedTab);
+  }, [open, requestedTab]);
 
   useEffect(() => {
     if (!open) return;
@@ -135,7 +155,11 @@ export function MenuModal({
               ariaLabel="Menu sections"
               segments={MENU_SEGMENTS.map(({ value, label }) => ({ value, label }))}
               value={activeTab}
-              onChange={(tab) => setTab(tab === "settings" ? "settings" : "stats")}
+              onChange={(tab) => {
+                const nextTab = tab === "settings" ? "settings" : "stats";
+                setTab(nextTab);
+                onTabChange(nextTab);
+              }}
             />
           </div>
 
@@ -143,7 +167,11 @@ export function MenuModal({
             {activeTab === "stats" ? (
               <StatsContent bodyRef={statsBodyRef} {...statsProps} />
             ) : (
-              <SettingsContent bodyRef={settingsBodyRef} />
+              <SettingsContent
+                bodyRef={settingsBodyRef}
+                settings={settings}
+                onUpdateSettings={onUpdateSettings}
+              />
             )}
           </div>
         </div>

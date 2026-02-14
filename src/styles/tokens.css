@@ -180,6 +180,42 @@
   --color-stats-callout-copy: #9ca7bc;
   --color-stats-callout-strong: #f4f8ff;
 
+  --color-board-theme-brown-light: #f0d9b5;
+  --color-board-theme-brown-dark: #b58863;
+  --color-board-theme-blue-light: #dee3e6;
+  --color-board-theme-blue-dark: #8ca2ad;
+  --color-board-theme-green-light: #ffffdd;
+  --color-board-theme-green-dark: #86a666;
+  --color-board-theme-gray-light: #dcdcdc;
+  --color-board-theme-gray-dark: #8a8a8a;
+
+  --color-settings-chip-bg: rgb(255 255 255 / 4%);
+  --color-settings-chip-border: rgb(255 255 255 / 10%);
+  --color-settings-chip-active-bg: color-mix(
+    in srgb,
+    var(--color-stats-tab-fg-active) 10%,
+    var(--color-stats-tab-bg-active)
+  );
+  --color-settings-chip-active-border: color-mix(
+    in srgb,
+    var(--color-stats-badge-bg) 70%,
+    var(--color-stats-card-border-hover)
+  );
+  --color-settings-chip-active-shadow: color-mix(in srgb, var(--color-stats-badge-bg) 35%, transparent);
+  --color-settings-chip-check-bg: var(--color-stats-badge-bg);
+  --color-settings-chip-check-fg: #111827;
+  --color-settings-focus-ring: rgb(255 255 255 / 55%);
+  --color-settings-divider-strong: rgb(255 255 255 / 9%);
+  --color-settings-divider-soft: rgb(255 255 255 / 8%);
+  --color-settings-swatch-border: rgb(255 255 255 / 24%);
+  --color-settings-toggle-bg: rgb(255 255 255 / 12%);
+  --color-settings-toggle-border: rgb(255 255 255 / 22%);
+  --color-settings-toggle-on-bg: color-mix(in srgb, var(--color-accent-success) 42%, rgb(0 0 0 / 10%));
+  --color-settings-toggle-on-border: color-mix(in srgb, var(--color-accent-success) 70%, rgb(255 255 255 / 15%));
+  --color-settings-toggle-thumb-bg: #fff;
+  --color-settings-slider-track-bg: rgb(255 255 255 / 16%);
+  --color-settings-slider-thumb-ring: rgb(7 19 43 / 35%);
+
   --color-promotion-option-bg: color-mix(in srgb, var(--color-bg-panel) 88%, #bcc4d6);
   --color-promotion-option-border: color-mix(in srgb, var(--color-border-default) 72%, transparent);
   --color-promotion-primary-bg: color-mix(in srgb, #ef8f49 82%, #b75d2f);

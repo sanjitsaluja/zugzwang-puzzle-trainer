@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { ActionBar } from "@/components/ActionBar";
 import { Board } from "@/components/Board";
 import { MenuModal } from "@/components/MenuModal";
@@ -19,6 +19,7 @@ import { TOTAL_PUZZLES, type BoardColor, type PromotionPiece } from "@/types";
 
 type PulseVariant = "pulse-a" | "pulse-b";
 type BoardVisualState = "neutral" | "success" | "failed" | "failed-active";
+type MenuTab = "stats" | "settings";
 
 interface PendingPromotion {
   from: string;
@@ -39,6 +40,13 @@ const FALLBACK_STATS_PROVIDER: PuzzleDataProvider = {
   },
 };
 
+const MENU_QUERY_KEY = "menu";
+
+function parseMenuTab(value: string | null): MenuTab | null {
+  if (value === "stats" || value === "settings") return value;
+  return null;
+}
+
 function parseRoutePuzzleId(value: string | undefined): number | null {
   if (!value) return null;
   const parsed = Number(value);
@@ -52,6 +60,7 @@ function deriveCheckColor(isCheck: boolean, turnColor: BoardColor): BoardColor |
 
 export function App() {
   const { puzzleId: puzzleIdParam } = useParams<{ puzzleId: string }>();
+  const location = useLocation();
   const navigate = useNavigate();
   const [statsProvider, setStatsProvider] = useState<PuzzleDataProvider>(FALLBACK_STATS_PROVIDER);
   const {
@@ -85,7 +94,6 @@ export function App() {
   const routePuzzleId = parseRoutePuzzleId(puzzleIdParam);
   const [pulseKind, setPulseKind] = useState<FeedbackKind | null>(null);
   const [pulseVariant, setPulseVariant] = useState<PulseVariant>("pulse-a");
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [pendingPromotion, setPendingPromotion] = useState<PendingPromotion | null>(null);
   const lastFeedbackIdRef = useRef(0);
   const menuPausedTimerRef = useRef(false);
@@ -93,6 +101,24 @@ export function App() {
   pauseTimerRef.current = puzzle.pauseTimer;
   const resumeTimerRef = useRef(puzzle.resumeTimer);
   resumeTimerRef.current = puzzle.resumeTimer;
+  const menuTab = parseMenuTab(new URLSearchParams(location.search).get(MENU_QUERY_KEY));
+  const isMenuOpen = menuTab !== null;
+
+  const setMenuTab = useCallback(
+    (nextTab: MenuTab | null) => {
+      const searchParams = new URLSearchParams(location.search);
+      if (nextTab) searchParams.set(MENU_QUERY_KEY, nextTab);
+      else searchParams.delete(MENU_QUERY_KEY);
+      const search = searchParams.toString();
+      navigate(
+        {
+          pathname: location.pathname,
+          search: search ? `?${search}` : "",
+        },
+      );
+    },
+    [location.pathname, location.search, navigate],
+  );
 
   useEffect(() => {
     let isCancelled = false;
@@ -222,10 +248,13 @@ export function App() {
     puzzle.resetCurrentPuzzle();
   };
   const handleOpenMenu = () => {
-    setIsMenuOpen(true);
+    setMenuTab("stats");
   };
   const handleCloseMenu = () => {
-    setIsMenuOpen(false);
+    setMenuTab(null);
+  };
+  const handleMenuTabChange = (nextTab: MenuTab) => {
+    setMenuTab(nextTab);
   };
   const handleOpenPuzzleFromStats = (targetPuzzleId: number) => {
     if (menuPausedTimerRef.current) {
@@ -234,7 +263,7 @@ export function App() {
     }
     puzzle.goToPuzzle(targetPuzzleId);
     navigate(`/puzzle/${targetPuzzleId}`);
-    setIsMenuOpen(false);
+    setMenuTab(null);
   };
 
   return (
@@ -310,6 +339,7 @@ export function App() {
               <PromotionPicker
                 orientation={puzzle.orientation}
                 color={pendingPromotion.color}
+                pieceSet={puzzle.settings.pieceSet}
                 destination={pendingPromotion.to}
                 options={pendingPromotion.options}
                 onSelect={handlePromotionSelect}
@@ -343,7 +373,11 @@ export function App() {
       </div>
       <MenuModal
         open={isMenuOpen}
+        requestedTab={menuTab ?? "stats"}
+        onTabChange={handleMenuTabChange}
         onClose={handleCloseMenu}
+        settings={puzzle.settings}
+        onUpdateSettings={puzzle.updateSettings}
         onOpenPuzzle={handleOpenPuzzleFromStats}
         solved={solved}
         retryQueue={retryQueue}

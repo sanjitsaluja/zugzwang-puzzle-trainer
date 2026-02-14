@@ -1,6 +1,7 @@
 import type { ComponentProps } from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { defaultAppSettings } from "@/lib/persistence";
 import { MenuModal } from "./MenuModal";
 
 type MenuModalProps = ComponentProps<typeof MenuModal>;
@@ -8,7 +9,11 @@ type MenuModalProps = ComponentProps<typeof MenuModal>;
 function makeProps(overrides: Partial<MenuModalProps> = {}): MenuModalProps {
   return {
     open: true,
+    requestedTab: "stats",
+    onTabChange: vi.fn(),
     onClose: vi.fn(),
+    settings: defaultAppSettings(),
+    onUpdateSettings: vi.fn(),
     onOpenPuzzle: vi.fn(),
     solved: 38,
     retryQueue: [
@@ -46,13 +51,16 @@ describe("MenuModal", () => {
   });
 
   it("opens to Stats and updates title when switching segments", () => {
-    render(<MenuModal {...makeProps()} />);
+    const props = makeProps();
+    render(<MenuModal {...props} />);
 
     expect(screen.getByRole("heading", { name: "Stats" })).toBeTruthy();
     fireEvent.click(screen.getByRole("tab", { name: "Settings" }));
     expect(screen.getByRole("heading", { name: "Settings" })).toBeTruthy();
+    expect(props.onTabChange).toHaveBeenCalledWith("settings");
     fireEvent.click(screen.getByRole("tab", { name: "Stats" }));
     expect(screen.getByRole("heading", { name: "Stats" })).toBeTruthy();
+    expect(props.onTabChange).toHaveBeenCalledWith("stats");
   });
 
   it("preserves scroll position for each top-level tab", () => {
@@ -102,5 +110,14 @@ describe("MenuModal", () => {
     expect(screen.getByRole("tab", { name: "Stats" }).getAttribute("aria-selected")).toBe(
       "true",
     );
+  });
+
+  it("follows requestedTab prop while open", () => {
+    const props = makeProps();
+    const { rerender } = render(<MenuModal {...props} />);
+
+    expect(screen.getByRole("heading", { name: "Stats" })).toBeTruthy();
+    rerender(<MenuModal {...props} requestedTab="settings" />);
+    expect(screen.getByRole("heading", { name: "Settings" })).toBeTruthy();
   });
 });

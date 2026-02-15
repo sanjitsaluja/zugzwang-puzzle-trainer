@@ -1,0 +1,36 @@
+.ui-piece-set-alpha piece.king.white {
+  background-image: url("../assets/pieces/alpha/wK.svg");
+}
+.ui-piece-set-alpha piece.queen.white {
+  background-image: url("../assets/pieces/alpha/wQ.svg");
+}
+.ui-piece-set-alpha piece.rook.white {
+  background-image: url("../assets/pieces/alpha/wR.svg");
+}
+.ui-piece-set-alpha piece.bishop.white {
+  background-image: url("../assets/pieces/alpha/wB.svg");
+}
+.ui-piece-set-alpha piece.knight.white {
+  background-image: url("../assets/pieces/alpha/wN.svg");
+}
+.ui-piece-set-alpha piece.pawn.white {
+  background-image: url("../assets/pieces/alpha/wP.svg");
+}
+.ui-piece-set-alpha piece.king.black {
+  background-image: url("../assets/pieces/alpha/bK.svg");
+}
+.ui-piece-set-alpha piece.queen.black {
+  background-image: url("../assets/pieces/alpha/bQ.svg");
+}
+.ui-piece-set-alpha piece.rook.black {
+  background-image: url("../assets/pieces/alpha/bR.svg");
+}
+.ui-piece-set-alpha piece.bishop.black {
+  background-image: url("../assets/pieces/alpha/bB.svg");
+}
+.ui-piece-set-alpha piece.knight.black {
+  background-image: url("../assets/pieces/alpha/bN.svg");
+}
+.ui-piece-set-alpha piece.pawn.black {
+  background-image: url("../assets/pieces/alpha/bP.svg");
+}

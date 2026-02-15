@@ -3,6 +3,10 @@ import { Chessground } from "@lichess-org/chessground";
 import type { Api } from "@lichess-org/chessground/dist/api";
 import type { Key } from "@lichess-org/chessground/dist/types";
 import {
+  ensureBoardThemeStyles,
+  ensurePieceSetStyles,
+} from "@/lib/chessground-style-loader";
+import {
   BOARD_THEMES,
   PIECE_SETS,
   type AnimationSpeedMs,
@@ -12,9 +16,6 @@ import {
 } from "@/types";
 
 import "@lichess-org/chessground/assets/chessground.base.css";
-import "@lichess-org/chessground/assets/chessground.brown.css";
-import "@lichess-org/chessground/assets/chessground.cburnett.css";
-import "@/styles/chessground-piece-sets.css";
 
 interface BoardProps {
   fen: string;
@@ -76,6 +77,18 @@ export function Board({
   onMoveRef.current = onMove;
 
   useEffect(() => {
+    void ensureBoardThemeStyles(boardTheme).catch((error: unknown) => {
+      console.error("Failed to load board theme styles:", error);
+    });
+  }, [boardTheme]);
+
+  useEffect(() => {
+    void ensurePieceSetStyles(pieceSet).catch((error: unknown) => {
+      console.error("Failed to load piece set styles:", error);
+    });
+  }, [pieceSet]);
+
+  useEffect(() => {
     if (!containerRef.current) return;
 
     const api = Chessground(containerRef.current, {
@@ -113,7 +126,9 @@ export function Board({
     });
 
     apiRef.current = api;
-    return () => api.destroy();
+    return () => {
+      api.destroy();
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {

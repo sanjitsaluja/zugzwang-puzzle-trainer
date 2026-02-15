@@ -1,0 +1,36 @@
+.ui-piece-set-merida piece.king.white {
+  background-image: url("../assets/pieces/merida/wK.svg");
+}
+.ui-piece-set-merida piece.queen.white {
+  background-image: url("../assets/pieces/merida/wQ.svg");
+}
+.ui-piece-set-merida piece.rook.white {
+  background-image: url("../assets/pieces/merida/wR.svg");
+}
+.ui-piece-set-merida piece.bishop.white {
+  background-image: url("../assets/pieces/merida/wB.svg");
+}
+.ui-piece-set-merida piece.knight.white {
+  background-image: url("../assets/pieces/merida/wN.svg");
+}
+.ui-piece-set-merida piece.pawn.white {
+  background-image: url("../assets/pieces/merida/wP.svg");
+}
+.ui-piece-set-merida piece.king.black {
+  background-image: url("../assets/pieces/merida/bK.svg");
+}
+.ui-piece-set-merida piece.queen.black {
+  background-image: url("../assets/pieces/merida/bQ.svg");
+}
+.ui-piece-set-merida piece.rook.black {
+  background-image: url("../assets/pieces/merida/bR.svg");
+}
+.ui-piece-set-merida piece.bishop.black {
+  background-image: url("../assets/pieces/merida/bB.svg");
+}
+.ui-piece-set-merida piece.knight.black {
+  background-image: url("../assets/pieces/merida/bN.svg");
+}
+.ui-piece-set-merida piece.pawn.black {
+  background-image: url("../assets/pieces/merida/bP.svg");
+}

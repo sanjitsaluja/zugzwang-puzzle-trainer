@@ -1,0 +1,8 @@
+.ui-board-theme-blue cg-board {
+  background-color: var(--color-board-theme-blue-light);
+  background-image: repeating-conic-gradient(
+    var(--color-board-theme-blue-dark) 0% 25%,
+    var(--color-board-theme-blue-light) 25% 50%
+  );
+  background-size: 25% 25%;
+}

@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { ActionBar } from "@/components/ActionBar";
 import { Board } from "@/components/Board";
-import { MenuModal } from "@/components/MenuModal";
 import { MoveList } from "@/components/MoveList";
 import { PromotionPicker } from "@/components/PromotionPicker";
 import { PuzzleInfo } from "@/components/PuzzleInfo";
@@ -31,6 +30,10 @@ interface PendingPromotion {
 
 const APP_LOADING_CLASS = "ui-app-status ui-app-status-loading";
 const APP_ERROR_CLASS = "ui-app-status ui-app-status-error";
+const LazyMenuModal = lazy(async () => {
+  const module = await import("@/components/MenuModal");
+  return { default: module.MenuModal };
+});
 
 const FALLBACK_STATS_PROVIDER: PuzzleDataProvider = {
   getMateIn(): number {
@@ -96,6 +99,7 @@ export function App() {
   const [pulseKind, setPulseKind] = useState<FeedbackKind | null>(null);
   const [pulseVariant, setPulseVariant] = useState<PulseVariant>("pulse-a");
   const [pendingPromotion, setPendingPromotion] = useState<PendingPromotion | null>(null);
+  const [shouldRenderMenu, setShouldRenderMenu] = useState(false);
   const lastFeedbackIdRef = useRef(0);
   const menuPausedTimerRef = useRef(false);
   const pauseTimerRef = useRef(puzzle.pauseTimer);
@@ -186,6 +190,10 @@ export function App() {
   useEffect(() => {
     setPendingPromotion(null);
   }, [currentPuzzleId, puzzle.fen]);
+
+  useEffect(() => {
+    if (isMenuOpen) setShouldRenderMenu(true);
+  }, [isMenuOpen]);
 
   useEffect(() => {
     if (isMenuOpen) {
@@ -283,6 +291,7 @@ export function App() {
     puzzle.resetCurrentPuzzle();
   };
   const handleOpenMenu = () => {
+    setShouldRenderMenu(true);
     setMenuTab("stats");
   };
   const handleCloseMenu = () => {
@@ -406,23 +415,27 @@ export function App() {
           />
         </footer>
       </div>
-      <MenuModal
-        open={isMenuOpen}
-        requestedTab={menuTab ?? "stats"}
-        onTabChange={handleMenuTabChange}
-        onClose={handleCloseMenu}
-        settings={puzzle.settings}
-        onUpdateSettings={puzzle.updateSettings}
-        onOpenPuzzle={handleOpenPuzzleFromStats}
-        solved={solved}
-        retryQueue={retryQueue}
-        currentStreak={currentStreak}
-        bestStreak={bestStreak}
-        successRate={successRate}
-        currentPuzzle={puzzle.currentPuzzleId}
-        totalPuzzles={totalPuzzles}
-        typeStats={typeStats}
-      />
+      {shouldRenderMenu ? (
+        <Suspense fallback={null}>
+          <LazyMenuModal
+            open={isMenuOpen}
+            requestedTab={menuTab ?? "stats"}
+            onTabChange={handleMenuTabChange}
+            onClose={handleCloseMenu}
+            settings={puzzle.settings}
+            onUpdateSettings={puzzle.updateSettings}
+            onOpenPuzzle={handleOpenPuzzleFromStats}
+            solved={solved}
+            retryQueue={retryQueue}
+            currentStreak={currentStreak}
+            bestStreak={bestStreak}
+            successRate={successRate}
+            currentPuzzle={puzzle.currentPuzzleId}
+            totalPuzzles={totalPuzzles}
+            typeStats={typeStats}
+          />
+        </Suspense>
+      ) : null}
     </div>
   );
 }

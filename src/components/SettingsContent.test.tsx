@@ -42,6 +42,19 @@ describe("SettingsContent", () => {
     expect(onUpdateSettings).toHaveBeenCalledWith({ highlightLastMove: false });
   });
 
+  it("toggles puzzle switches", () => {
+    const onUpdateSettings = vi.fn();
+    render(<SettingsContent settings={makeSettings()} onUpdateSettings={onUpdateSettings} />);
+
+    fireEvent.click(screen.getByRole("switch", { name: "Timer" }));
+    fireEvent.click(screen.getByRole("switch", { name: "Sound Effects" }));
+    fireEvent.click(screen.getByRole("switch", { name: "Auto-Advance on Solve" }));
+
+    expect(onUpdateSettings).toHaveBeenCalledWith({ timer: false });
+    expect(onUpdateSettings).toHaveBeenCalledWith({ soundEffects: false });
+    expect(onUpdateSettings).toHaveBeenCalledWith({ autoAdvanceToNextPuzzle: true });
+  });
+
   it("updates animation speed and shows Off for zero", () => {
     const onUpdateSettings = vi.fn();
     const { rerender } = render(
@@ -56,5 +69,13 @@ describe("SettingsContent", () => {
       <SettingsContent settings={makeSettings({ animationSpeed: 0 })} onUpdateSettings={onUpdateSettings} />,
     );
     expect(screen.getByText("Off")).toBeTruthy();
+  });
+
+  it("renders the support card and build metadata footer", () => {
+    render(<SettingsContent settings={makeSettings()} onUpdateSettings={vi.fn()} />);
+
+    const supportLink = screen.getByRole("link", { name: "Buy me a coffee" });
+    expect(supportLink.getAttribute("href")).toBe("https://buymeacoffee.com/zugzwang");
+    expect(screen.getByText(/zugzwang v1\.0 · 4,462 puzzles/i)).toBeTruthy();
   });
 });

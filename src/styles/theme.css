@@ -1485,6 +1485,72 @@
     line-height: var(--type-role-settings-shell-subtitle-leading);
   }
 
+  .ui-settings-support-card {
+    align-items: center;
+    background: var(--color-settings-support-bg);
+    border: var(--border-width-1) solid var(--color-settings-support-border);
+    border-radius: 1.1rem;
+    display: flex;
+    gap: var(--space-3);
+    min-height: 5.25rem;
+    padding: var(--space-4);
+    text-decoration: none;
+    transition:
+      border-color var(--duration-fast) var(--ease-standard),
+      transform var(--duration-fast) var(--ease-standard);
+  }
+
+  .ui-settings-support-card:hover {
+    border-color: var(--color-settings-support-border-hover);
+  }
+
+  .ui-settings-support-card:focus-visible {
+    outline: 0.12rem solid var(--color-settings-focus-ring);
+    outline-offset: 0.12rem;
+  }
+
+  .ui-settings-support-icon {
+    color: var(--color-settings-support-icon);
+    font-size: 1.9rem;
+    line-height: 1;
+  }
+
+  .ui-settings-support-copy {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--space-1);
+    min-width: 0;
+  }
+
+  .ui-settings-support-title {
+    color: var(--color-settings-support-title);
+    font-size: var(--type-role-settings-support-title-size);
+    font-weight: var(--type-role-settings-support-title-weight);
+    line-height: var(--type-role-settings-support-title-leading);
+  }
+
+  .ui-settings-support-subtitle {
+    color: var(--color-settings-support-subtitle);
+    font-size: var(--type-role-settings-support-subtitle-size);
+    line-height: var(--type-role-settings-support-subtitle-leading);
+  }
+
+  .ui-settings-support-chevron {
+    color: var(--color-settings-support-chevron);
+    font-size: 2rem;
+    line-height: 1;
+  }
+
+  .ui-settings-meta {
+    color: var(--color-settings-meta);
+    font-family: var(--type-family-data);
+    font-size: var(--type-role-settings-meta-size);
+    line-height: var(--type-role-settings-meta-leading);
+    margin-top: var(--space-2);
+    text-align: center;
+  }
+
   .ui-toast {
     animation: toast-fade-in var(--duration-fast) var(--ease-standard);
     background: var(--color-bg-panel-section);
@@ -1858,6 +1924,15 @@
     .ui-settings-chip {
       min-height: 1.9rem;
       padding: 0.42rem 0.72rem;
+    }
+
+    .ui-settings-support-card {
+      min-height: 4.5rem;
+      padding: var(--space-3);
+    }
+
+    .ui-settings-support-title {
+      font-size: var(--type-size-body);
     }
 
     .ui-stats-quick-row {

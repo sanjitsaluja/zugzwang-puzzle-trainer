@@ -6,6 +6,7 @@ import {
   BOARD_THEMES,
   OVERALL_THEMES,
   PIECE_SETS,
+  TOTAL_PUZZLES,
   type AppSettings,
   type BoardTheme,
   type OverallTheme,
@@ -31,10 +32,6 @@ interface SettingsToggleFieldProps {
 }
 
 const SHELL_SECTIONS: SettingsShellCardProps[] = [
-  {
-    title: "Puzzle",
-    subtitle: "Timer visibility and sound toggles.",
-  },
   {
     title: "Data",
     subtitle: "Reset all progress with destructive confirmation.",
@@ -80,6 +77,10 @@ const BOARD_THEME_SWATCHES: Record<BoardTheme, { light: string; dark: string }> 
   },
 };
 
+const BUY_ME_A_COFFEE_URL =
+  import.meta.env.VITE_BUY_ME_A_COFFEE_URL?.trim() || "https://buymeacoffee.com/zugzwang";
+const APP_VERSION = import.meta.env.VITE_APP_VERSION?.trim() || "1.0";
+
 function SettingsShellCard({ title, subtitle }: SettingsShellCardProps) {
   return (
     <section className="ui-settings-shell-card">
@@ -123,6 +124,7 @@ export function SettingsContent({
 }: SettingsContentProps) {
   const animationControlId = useId();
   const animationLabel = settings.animationSpeed === 0 ? "Off" : `${settings.animationSpeed}ms`;
+  const puzzleCountLabel = new Intl.NumberFormat("en-US").format(TOTAL_PUZZLES);
 
   return (
     <div className="ui-settings-root">
@@ -290,6 +292,38 @@ export function SettingsContent({
           </div>
         </section>
 
+        <section className="ui-settings-card" aria-labelledby="puzzle-settings-title">
+          <header className="ui-settings-section-head">
+            <h2 className="ui-settings-section-title" id="puzzle-settings-title">
+              Puzzle
+            </h2>
+            <p className="ui-settings-section-subtitle">
+              Puzzle behavior and feedback controls.
+            </p>
+          </header>
+
+          <SettingsToggleField
+            title="Timer"
+            subtitle="Show or hide the solve timer while still tracking time in the background."
+            checked={settings.timer}
+            onToggle={(next) => onUpdateSettings({ timer: next })}
+          />
+
+          <SettingsToggleField
+            title="Sound Effects"
+            subtitle="Enable or mute app sounds for move and solve feedback."
+            checked={settings.soundEffects}
+            onToggle={(next) => onUpdateSettings({ soundEffects: next })}
+          />
+
+          <SettingsToggleField
+            title="Auto-Advance on Solve"
+            subtitle="Move to the next puzzle automatically after a successful solve."
+            checked={settings.autoAdvanceToNextPuzzle}
+            onToggle={(next) => onUpdateSettings({ autoAdvanceToNextPuzzle: next })}
+          />
+        </section>
+
         {SHELL_SECTIONS.map((section) => (
           <SettingsShellCard
             key={section.title}
@@ -297,6 +331,31 @@ export function SettingsContent({
             subtitle={section.subtitle}
           />
         ))}
+
+        <a
+          className="ui-settings-support-card"
+          href={BUY_ME_A_COFFEE_URL}
+          target="_blank"
+          rel="noreferrer noopener"
+          aria-label="Buy me a coffee"
+        >
+          <span className="ui-settings-support-icon" aria-hidden="true">
+            ☕
+          </span>
+          <span className="ui-settings-support-copy">
+            <span className="ui-settings-support-title">Buy me a coffee</span>
+            <span className="ui-settings-support-subtitle">
+              Support Zugzwang&apos;s development
+            </span>
+          </span>
+          <span className="ui-settings-support-chevron" aria-hidden="true">
+            ›
+          </span>
+        </a>
+
+        <p className="ui-settings-meta">
+          zugzwang v{APP_VERSION} · {puzzleCountLabel} puzzles
+        </p>
       </div>
     </div>
   );

@@ -153,7 +153,27 @@ export function App() {
     lastFeedbackIdRef.current = feedback.id;
     setPulseKind(feedback.kind);
     setPulseVariant((current) => (current === "pulse-a" ? "pulse-b" : "pulse-a"));
-  }, [puzzle.feedbackEvent]);
+    if (
+      feedback.kind === "correct" &&
+      puzzle.phase === "complete" &&
+      !puzzle.isFailed &&
+      puzzle.settings.autoAdvanceToNextPuzzle &&
+      !puzzle.isLastPuzzle
+    ) {
+      const targetPuzzleId = puzzle.currentPuzzleId + 1;
+      puzzle.nextPuzzle();
+      navigate(`/puzzle/${targetPuzzleId}`);
+    }
+  }, [
+    navigate,
+    puzzle.currentPuzzleId,
+    puzzle.feedbackEvent,
+    puzzle.isFailed,
+    puzzle.isLastPuzzle,
+    puzzle.nextPuzzle,
+    puzzle.phase,
+    puzzle.settings.autoAdvanceToNextPuzzle,
+  ]);
 
   useEffect(() => {
     if (!pulseKind) return;

@@ -42,6 +42,7 @@ export function defaultAppSettings(): AppSettings {
     animationSpeed: 200,
     timer: true,
     soundEffects: true,
+    autoAdvanceToNextPuzzle: false,
   };
 }
 

@@ -166,6 +166,13 @@
   --type-role-settings-shell-title-leading: var(--type-role-panel-section-title-leading);
   --type-role-settings-shell-subtitle-size: var(--type-size-body);
   --type-role-settings-shell-subtitle-leading: var(--type-leading-loose);
+  --type-role-settings-support-title-size: var(--type-size-heading);
+  --type-role-settings-support-title-weight: var(--type-weight-semibold);
+  --type-role-settings-support-title-leading: var(--type-leading-tight);
+  --type-role-settings-support-subtitle-size: var(--type-size-body);
+  --type-role-settings-support-subtitle-leading: var(--type-leading-relaxed);
+  --type-role-settings-meta-size: var(--type-size-body);
+  --type-role-settings-meta-leading: var(--type-leading-relaxed);
   --type-role-toast-size: var(--type-size-body);
 
   --space-0: 0;
@@ -362,6 +369,14 @@
   --color-settings-toggle-thumb-bg: #fff;
   --color-settings-slider-track-bg: rgb(255 255 255 / 16%);
   --color-settings-slider-thumb-ring: rgb(7 19 43 / 35%);
+  --color-settings-support-bg: linear-gradient(180deg, rgb(63 44 10 / 85%) 0%, rgb(42 29 7 / 92%) 100%);
+  --color-settings-support-border: rgb(176 124 24 / 55%);
+  --color-settings-support-border-hover: rgb(212 164 59 / 70%);
+  --color-settings-support-icon: #f3deaa;
+  --color-settings-support-title: #f4d664;
+  --color-settings-support-subtitle: #b79337;
+  --color-settings-support-chevron: #b79337;
+  --color-settings-meta: rgb(148 152 167 / 72%);
 
   --color-promotion-option-bg: color-mix(in srgb, var(--color-bg-panel) 88%, #bcc4d6);
   --color-promotion-option-border: color-mix(in srgb, var(--color-border-default) 72%, transparent);
@@ -477,6 +492,14 @@
   --color-settings-toggle-thumb-bg: #fff;
   --color-settings-slider-track-bg: color-mix(in srgb, var(--color-fg-primary) 14%, transparent);
   --color-settings-slider-thumb-ring: color-mix(in srgb, var(--color-bg-panel) 60%, transparent);
+  --color-settings-support-bg: linear-gradient(180deg, #fff5da 0%, #fff0ca 100%);
+  --color-settings-support-border: color-mix(in srgb, #d29a2f 48%, var(--color-border-default));
+  --color-settings-support-border-hover: color-mix(in srgb, #ca8d1f 62%, var(--color-border-default));
+  --color-settings-support-icon: #8f6517;
+  --color-settings-support-title: #8f6517;
+  --color-settings-support-subtitle: #9a7529;
+  --color-settings-support-chevron: #9a7529;
+  --color-settings-meta: color-mix(in srgb, var(--color-fg-muted) 82%, transparent);
 }
 
 :root[data-theme="dark"] {

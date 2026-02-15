@@ -117,6 +117,7 @@ export const AppSettingsSchema = z.object({
     .refine((value) => value % ANIMATION_SPEED_STEP_MS === 0),
   timer: z.boolean(),
   soundEffects: z.boolean(),
+  autoAdvanceToNextPuzzle: z.boolean(),
 });
 export type AppSettings = z.infer<typeof AppSettingsSchema>;
 

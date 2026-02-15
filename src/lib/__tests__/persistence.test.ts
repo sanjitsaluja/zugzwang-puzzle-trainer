@@ -32,6 +32,7 @@ describe("defaults", () => {
       animationSpeed: 200,
       timer: true,
       soundEffects: true,
+      autoAdvanceToNextPuzzle: false,
     });
   });
 
@@ -75,6 +76,7 @@ describe("save and load", () => {
         animationSpeed: 0,
         timer: false,
         soundEffects: false,
+        autoAdvanceToNextPuzzle: true,
       },
     };
 

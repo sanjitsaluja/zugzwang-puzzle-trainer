@@ -33,6 +33,7 @@ interface StoredProgress {
 
 export function defaultAppSettings(): AppSettings {
   return {
+    overallTheme: "auto",
     pieceSet: "cburnett",
     boardTheme: "brown",
     coordinates: true,

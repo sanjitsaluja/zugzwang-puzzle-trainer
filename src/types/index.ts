@@ -94,12 +94,16 @@ export type PieceSet = (typeof PIECE_SETS)[number];
 export const BOARD_THEMES = ["brown", "blue", "green", "gray"] as const;
 export type BoardTheme = (typeof BOARD_THEMES)[number];
 
+export const OVERALL_THEMES = ["auto", "light", "dark"] as const;
+export type OverallTheme = (typeof OVERALL_THEMES)[number];
+
 export const ANIMATION_SPEED_MIN_MS = 0;
 export const ANIMATION_SPEED_MAX_MS = 500;
 export const ANIMATION_SPEED_STEP_MS = 50;
 export type AnimationSpeedMs = number;
 
 export const AppSettingsSchema = z.object({
+  overallTheme: z.enum(OVERALL_THEMES),
   pieceSet: z.enum(PIECE_SETS),
   boardTheme: z.enum(BOARD_THEMES),
   coordinates: z.boolean(),

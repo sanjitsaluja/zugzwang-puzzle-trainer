@@ -392,6 +392,91 @@
 
 :root[data-theme="light"] {
   color-scheme: light;
+  --color-stats-overlay-bg: rgb(16 20 31 / 62%);
+  --color-stats-modal-bg: linear-gradient(180deg, #ffffff 0%, #f4f7ff 100%);
+  --color-stats-modal-border: color-mix(in srgb, var(--color-border-default) 85%, transparent);
+  --color-stats-fg-primary: var(--color-fg-primary);
+  --color-stats-header-border: color-mix(in srgb, var(--color-border-default) 80%, transparent);
+  --color-stats-title: var(--color-fg-primary);
+  --color-stats-close-bg: var(--color-bg-panel-section);
+  --color-stats-close-bg-hover: var(--color-bg-button);
+  --color-stats-close-border: var(--color-border-default);
+  --color-stats-close-fg: var(--color-fg-secondary);
+  --color-stats-close-fg-hover: var(--color-fg-primary);
+  --color-stats-quick-bg: color-mix(in srgb, var(--color-bg-panel-section) 82%, #fff);
+  --color-stats-quick-border: var(--color-border-default);
+  --color-stats-quick-highlight-bg: color-mix(in srgb, var(--color-accent-info) 14%, #fff);
+  --color-stats-quick-highlight-border: color-mix(
+    in srgb,
+    var(--color-accent-info) 45%,
+    var(--color-border-default)
+  );
+  --color-stats-quick-value: var(--color-fg-primary);
+  --color-stats-quick-value-highlight: var(--color-accent-info);
+  --color-stats-quick-label: var(--color-fg-muted);
+  --color-stats-tab-fg: var(--color-fg-muted);
+  --color-stats-tab-bg-active: var(--color-bg-panel-section);
+  --color-stats-tab-fg-active: var(--color-fg-primary);
+  --color-stats-badge-bg: #f7c32f;
+  --color-stats-badge-fg: #111827;
+  --color-stats-retry-hint: var(--color-fg-muted);
+  --color-stats-card-bg: linear-gradient(180deg, #fff 0%, #f8faff 100%);
+  --color-stats-card-bg-retry: linear-gradient(180deg, #fff 0%, #f6f9ff 100%);
+  --color-stats-card-bg-hover: linear-gradient(180deg, #fff 0%, #eef3ff 100%);
+  --color-stats-card-border: var(--color-border-default);
+  --color-stats-card-border-hover: color-mix(in srgb, var(--color-border-default) 70%, var(--color-fg-primary));
+  --color-stats-card-fg: var(--color-fg-primary);
+  --color-stats-retry-meta: var(--color-fg-muted);
+  --color-stats-retry-arrow: var(--color-fg-muted);
+  --color-stats-empty-title: var(--color-fg-primary);
+  --color-stats-empty-subtitle: var(--color-fg-secondary);
+  --color-stats-section-title: var(--color-fg-primary);
+  --color-stats-section-subtitle: var(--color-fg-secondary);
+  --color-stats-overall-position: var(--color-fg-muted);
+  --color-stats-overall-percent: var(--color-fg-primary);
+  --color-stats-progress-track-bg: color-mix(in srgb, var(--color-fg-primary) 12%, transparent);
+  --color-stats-overall-meta: var(--color-fg-secondary);
+  --color-stats-speed-count: var(--color-fg-secondary);
+  --color-stats-speed-time: var(--color-fg-primary);
+  --color-stats-speed-up: var(--color-accent-success);
+  --color-stats-speed-down: var(--color-accent-danger);
+  --color-stats-speed-muted: var(--color-fg-muted);
+  --color-stats-callout-bg: linear-gradient(90deg, rgb(34 197 94 / 16%) 0%, rgb(16 116 71 / 10%) 100%);
+  --color-stats-callout-border: color-mix(
+    in srgb,
+    var(--color-accent-success) 35%,
+    var(--color-border-default)
+  );
+  --color-stats-callout-title: color-mix(in srgb, var(--color-accent-success) 86%, var(--color-fg-primary));
+  --color-stats-callout-copy: var(--color-fg-secondary);
+  --color-stats-callout-strong: var(--color-fg-primary);
+
+  --color-settings-chip-bg: color-mix(in srgb, var(--color-bg-panel-section) 86%, #fff);
+  --color-settings-chip-border: var(--color-border-default);
+  --color-settings-chip-active-bg: color-mix(in srgb, var(--color-accent-info) 12%, var(--color-bg-panel));
+  --color-settings-chip-active-border: color-mix(
+    in srgb,
+    var(--color-accent-info) 48%,
+    var(--color-border-default)
+  );
+  --color-settings-chip-active-shadow: color-mix(in srgb, var(--color-accent-info) 22%, transparent);
+  --color-settings-chip-check-bg: var(--color-accent-info);
+  --color-settings-chip-check-fg: #111827;
+  --color-settings-focus-ring: color-mix(in srgb, var(--color-accent-info) 48%, transparent);
+  --color-settings-divider-strong: color-mix(in srgb, var(--color-border-default) 92%, transparent);
+  --color-settings-divider-soft: color-mix(in srgb, var(--color-border-default) 70%, transparent);
+  --color-settings-swatch-border: color-mix(in srgb, var(--color-border-default) 85%, transparent);
+  --color-settings-toggle-bg: color-mix(in srgb, var(--color-fg-primary) 8%, transparent);
+  --color-settings-toggle-border: color-mix(in srgb, var(--color-fg-primary) 20%, var(--color-border-default));
+  --color-settings-toggle-on-bg: color-mix(in srgb, var(--color-accent-success) 28%, #fff);
+  --color-settings-toggle-on-border: color-mix(
+    in srgb,
+    var(--color-accent-success) 55%,
+    var(--color-border-default)
+  );
+  --color-settings-toggle-thumb-bg: #fff;
+  --color-settings-slider-track-bg: color-mix(in srgb, var(--color-fg-primary) 14%, transparent);
+  --color-settings-slider-thumb-ring: color-mix(in srgb, var(--color-bg-panel) 60%, transparent);
 }
 
 :root[data-theme="dark"] {

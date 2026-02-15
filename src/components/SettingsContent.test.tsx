@@ -16,13 +16,15 @@ describe("SettingsContent", () => {
     cleanup();
   });
 
-  it("updates piece set and board theme selections", () => {
+  it("updates app theme, piece set and board theme selections", () => {
     const onUpdateSettings = vi.fn();
     render(<SettingsContent settings={makeSettings()} onUpdateSettings={onUpdateSettings} />);
 
+    fireEvent.click(screen.getByRole("button", { name: "Dark" }));
     fireEvent.click(screen.getByRole("button", { name: "merida" }));
     fireEvent.click(screen.getByRole("button", { name: "Blue" }));
 
+    expect(onUpdateSettings).toHaveBeenCalledWith({ overallTheme: "dark" });
     expect(onUpdateSettings).toHaveBeenCalledWith({ pieceSet: "merida" });
     expect(onUpdateSettings).toHaveBeenCalledWith({ boardTheme: "blue" });
   });

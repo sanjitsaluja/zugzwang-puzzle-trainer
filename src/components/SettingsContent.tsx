@@ -4,9 +4,11 @@ import {
   ANIMATION_SPEED_MIN_MS,
   ANIMATION_SPEED_STEP_MS,
   BOARD_THEMES,
+  OVERALL_THEMES,
   PIECE_SETS,
   type AppSettings,
   type BoardTheme,
+  type OverallTheme,
   type PieceSet,
 } from "@/types";
 
@@ -44,6 +46,12 @@ const PIECE_SET_LABELS: Record<PieceSet, string> = {
   merida: "merida",
   alpha: "alpha",
   staunty: "staunty",
+};
+
+const OVERALL_THEME_LABELS: Record<OverallTheme, string> = {
+  auto: "Auto",
+  light: "Light",
+  dark: "Dark",
 };
 
 const BOARD_THEME_LABELS: Record<BoardTheme, string> = {
@@ -128,6 +136,37 @@ export function SettingsContent({
               Changes apply immediately and are saved automatically.
             </p>
           </header>
+
+          <div className="ui-settings-control">
+            <div className="ui-settings-control-copy">
+              <h3 className="ui-settings-control-title">App Theme</h3>
+              <p className="ui-settings-control-subtitle">
+                Set overall app appearance.
+              </p>
+            </div>
+            <div className="ui-settings-chip-row" role="group" aria-label="App theme">
+              {OVERALL_THEMES.map((overallTheme) => {
+                const isActive = settings.overallTheme === overallTheme;
+                return (
+                  <button
+                    key={overallTheme}
+                    type="button"
+                    className="ui-settings-chip ui-settings-theme-chip"
+                    data-active={isActive || undefined}
+                    aria-pressed={isActive}
+                    onClick={() => onUpdateSettings({ overallTheme })}
+                  >
+                    <span>{OVERALL_THEME_LABELS[overallTheme]}</span>
+                    {isActive ? (
+                      <span className="ui-settings-chip-check" aria-hidden="true">
+                        ✓
+                      </span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
           <div className="ui-settings-control">
             <div className="ui-settings-control-copy">

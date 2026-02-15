@@ -23,6 +23,7 @@ afterEach(() => {
 describe("defaults", () => {
   it("returns default app settings", () => {
     expect(defaultAppSettings()).toEqual({
+      overallTheme: "auto",
       pieceSet: "cburnett",
       boardTheme: "brown",
       coordinates: true,
@@ -65,6 +66,7 @@ describe("save and load", () => {
         2: { status: "fail", timeMs: 12000, attempts: 3, successCount: 1, failCount: 2, hintCount: 2 },
       },
       settings: {
+        overallTheme: "dark",
         pieceSet: "merida",
         boardTheme: "green",
         coordinates: false,
@@ -111,6 +113,7 @@ describe("save and load", () => {
         animationSpeed: 100,
         timer: false,
         soundEffects: false,
+        overallTheme: "light",
       }),
     );
 

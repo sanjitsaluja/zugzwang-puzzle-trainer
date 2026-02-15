@@ -1229,7 +1229,6 @@
     border-radius: 1.1rem;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
   }
 
   .ui-settings-section-head {

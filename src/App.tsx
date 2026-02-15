@@ -11,6 +11,7 @@ import { useStats } from "@/hooks/useStats";
 import { usePuzzle } from "@/hooks/usePuzzle";
 import { loadPuzzles } from "@/lib/puzzles";
 import type { FeedbackKind } from "@/lib/puzzle-engine";
+import { applyThemePreference } from "@/lib/theme";
 import {
   createPuzzleDataProvider,
   type PuzzleDataProvider,
@@ -177,6 +178,20 @@ export function App() {
       menuPausedTimerRef.current = false;
     }
   }, [isMenuOpen]);
+
+  useEffect(() => {
+    applyThemePreference(puzzle.settings.overallTheme);
+  }, [puzzle.settings.overallTheme]);
+
+  useEffect(() => {
+    if (puzzle.settings.overallTheme !== "auto") return;
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const onSystemThemeChange = () => {
+      applyThemePreference("auto");
+    };
+    mediaQuery.addEventListener("change", onSystemThemeChange);
+    return () => mediaQuery.removeEventListener("change", onSystemThemeChange);
+  }, [puzzle.settings.overallTheme]);
 
   if (puzzle.isLoading) {
     const message =

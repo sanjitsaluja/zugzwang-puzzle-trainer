@@ -222,9 +222,7 @@ export function App() {
   }, [puzzle.settings.overallTheme]);
 
   if (puzzle.isLoading) {
-    const message =
-      puzzle.engineStatus === "loading" ? "Loading engine..." : "Loading puzzles...";
-    return <div className={APP_LOADING_CLASS}>{message}</div>;
+    return <div className={APP_LOADING_CLASS}>Loading puzzles...</div>;
   }
 
   if (puzzle.loadError) {
@@ -324,6 +322,7 @@ export function App() {
             sideToMove={sideToMove}
             phase={puzzle.phase}
             isFailed={puzzle.isFailed}
+            isAwaitingEngineMove={puzzle.isAwaitingEngineMove}
           />
 
           <div className="ui-header-right">

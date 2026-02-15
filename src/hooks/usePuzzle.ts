@@ -184,6 +184,7 @@ export function usePuzzle(options: UsePuzzleOptions = {}) {
   const [hintStep, setHintStep] = useState<HintStep>(0);
   const [hintMove, setHintMove] = useState<ParsedMove | null>(null);
   const [isHintLoading, setIsHintLoading] = useState(false);
+  const [isAwaitingEngineMove, setIsAwaitingEngineMove] = useState(false);
 
   const engineRef = useRef<PuzzleEngine>(null);
   if (engineRef.current === null) {
@@ -203,6 +204,8 @@ export function usePuzzle(options: UsePuzzleOptions = {}) {
   } | null>(null);
   const isHydratingRef = useRef(false);
   const hintRequestIdRef = useRef(0);
+  const pendingEngineWaitsRef = useRef(0);
+  const isMountedRef = useRef(true);
   const timerRef = useRef(timer);
   timerRef.current = timer;
   const updatePuzzleRef = useRef(updatePuzzle);
@@ -211,6 +214,14 @@ export function usePuzzle(options: UsePuzzleOptions = {}) {
   onPuzzleFailedRef.current = options.onPuzzleFailed;
   const onPuzzleCompleteRef = useRef(options.onPuzzleComplete);
   onPuzzleCompleteRef.current = options.onPuzzleComplete;
+  const stockfishRef = useRef(stockfish);
+  stockfishRef.current = stockfish;
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const clearHintState = useCallback(() => {
     hintRequestIdRef.current += 1;
@@ -218,6 +229,111 @@ export function usePuzzle(options: UsePuzzleOptions = {}) {
     setHintMove(null);
     setIsHintLoading(false);
   }, []);
+
+  const beginEngineWait = useCallback(() => {
+    pendingEngineWaitsRef.current += 1;
+    if (isMountedRef.current) setIsAwaitingEngineMove(true);
+  }, []);
+
+  const endEngineWait = useCallback(() => {
+    pendingEngineWaitsRef.current = Math.max(0, pendingEngineWaitsRef.current - 1);
+    if (pendingEngineWaitsRef.current === 0 && isMountedRef.current) {
+      setIsAwaitingEngineMove(false);
+    }
+  }, []);
+
+  const createPuzzleStrategy = useCallback(
+    (
+      solution: ParsedMove[],
+      options?: {
+        initialSolutionIndex?: number;
+        onSolutionIndexChange?: (index: number) => void;
+      },
+    ): PuzzleStrategy => {
+      const fallback = createSolutionStrategy(solution, options);
+      let engineStrategy: PuzzleStrategy | null = null;
+
+      const getEngineStrategyIfReady = (): PuzzleStrategy | null => {
+        const sf = stockfishRef.current;
+        if (engineStrategy) return engineStrategy;
+
+        try {
+          engineStrategy = sf.createEngineStrategy(solution, options);
+          return engineStrategy;
+        } catch (error) {
+          if (
+            !(error instanceof Error) ||
+            error.message !== "Engine not ready"
+          ) {
+            console.error("Engine strategy unavailable; falling back to solution strategy:", error);
+          }
+          return null;
+        }
+      };
+
+      const ensureEngineStrategy = async (): Promise<PuzzleStrategy | null> => {
+        const readyStrategy = getEngineStrategyIfReady();
+        if (readyStrategy) return readyStrategy;
+
+        const sf = stockfishRef.current;
+        if (sf.status === "error") return null;
+
+        beginEngineWait();
+        try {
+          const ready = await sf.waitUntilReady();
+          if (!ready) return null;
+          return getEngineStrategyIfReady();
+        } finally {
+          endEngineWait();
+        }
+      };
+
+      return {
+        validateMove: async (fen, userMove, remainingMateDepth) => {
+          const strategy = await ensureEngineStrategy();
+          if (strategy) {
+            const engineResult = await strategy.validateMove(
+              fen,
+              userMove,
+              remainingMateDepth,
+            );
+            if (!engineResult.isCorrect && !engineResult.opponentMove) {
+              const fallbackOpponent = await strategy.getOpponentMove(fen);
+              return {
+                ...engineResult,
+                opponentMove: fallbackOpponent,
+              };
+            }
+            return engineResult;
+          }
+
+          const fallbackResult = await fallback.validateMove(
+            fen,
+            userMove,
+            remainingMateDepth,
+          );
+          if (!fallbackResult.isCorrect && !fallbackResult.opponentMove) {
+            const delayedEngineStrategy = await ensureEngineStrategy();
+            if (delayedEngineStrategy) {
+              const opponentMove = await delayedEngineStrategy.getOpponentMove(fen);
+              return {
+                ...fallbackResult,
+                opponentMove,
+              };
+            }
+          }
+          return fallbackResult;
+        },
+        getOpponentMove: async (fen) => {
+          const strategy = await ensureEngineStrategy();
+          if (strategy) return strategy.getOpponentMove(fen);
+          return fallback.getOpponentMove(fen);
+        },
+        freePlayBothSides: false,
+      };
+    },
+    [beginEngineWait, endEngineWait],
+  );
 
   const persistSession = useCallback(
     (
@@ -352,15 +468,13 @@ export function usePuzzle(options: UsePuzzleOptions = {}) {
       });
   }, []);
 
-  const stockfishRef = useRef(stockfish);
-  stockfishRef.current = stockfish;
-
-  const engineSettled =
-    stockfish.status === "ready" ||
-    stockfish.status === "error";
+  useEffect(() => {
+    if (!puzzles) return;
+    void stockfishRef.current.start();
+  }, [puzzles, stockfish.status]);
 
   useEffect(() => {
-    if (!puzzles || !engineSettled) return;
+    if (!puzzles) return;
     const puzzle = getPuzzleById(puzzles, state.currentPuzzleId);
     if (!puzzle) return;
 
@@ -371,16 +485,9 @@ export function usePuzzle(options: UsePuzzleOptions = {}) {
       : 0;
 
     const solution = parseMoves(puzzle.moves);
-    const sf = stockfishRef.current;
-    const useEngine = sf.status === "ready";
-
-    const strategy: PuzzleStrategy = useEngine
-      ? sf.createEngineStrategy(solution, {
-          initialSolutionIndex,
-        })
-      : createSolutionStrategy(solution, {
-          initialSolutionIndex,
-        });
+    const strategy = createPuzzleStrategy(solution, {
+      initialSolutionIndex,
+    });
 
     isHydratingRef.current = true;
     pendingLoadContextRef.current = restoredSession
@@ -397,9 +504,9 @@ export function usePuzzle(options: UsePuzzleOptions = {}) {
           hintMove: null,
         };
 
-    console.log(`[usePuzzle] Loading puzzle #${puzzle.problemid} (${puzzle.type}), strategy=${useEngine ? "engine" : "solution"}`);
+    console.log(`[usePuzzle] Loading puzzle #${puzzle.problemid} (${puzzle.type})`);
     engineRef.current?.loadPuzzle(puzzle, strategy, restoredEngineState);
-  }, [puzzles, state.currentPuzzleId, engineSettled]);
+  }, [createPuzzleStrategy, puzzles, state.currentPuzzleId]);
 
   useEffect(() => {
     return () => engineRef.current?.dispose();
@@ -475,11 +582,7 @@ export function usePuzzle(options: UsePuzzleOptions = {}) {
     if (!puzzleData || isAtInitialState) return;
 
     const solution = parseMoves(puzzleData.moves);
-    const sf = stockfishRef.current;
-    const useEngine = sf.status === "ready";
-    const strategy: PuzzleStrategy = useEngine
-      ? sf.createEngineStrategy(solution, { initialSolutionIndex: 0 })
-      : createSolutionStrategy(solution, { initialSolutionIndex: 0 });
+    const strategy = createPuzzleStrategy(solution, { initialSolutionIndex: 0 });
 
     hintRequestIdRef.current += 1;
     isHydratingRef.current = true;
@@ -491,7 +594,7 @@ export function usePuzzle(options: UsePuzzleOptions = {}) {
     };
 
     engineRef.current?.loadPuzzle(puzzleData, strategy);
-  }, [isAtInitialState, snapshot.puzzleData]);
+  }, [createPuzzleStrategy, isAtInitialState, snapshot.puzzleData]);
 
   const pauseTimer = useCallback((): boolean => {
     if (snapshot.phase === "complete") return false;
@@ -564,7 +667,8 @@ export function usePuzzle(options: UsePuzzleOptions = {}) {
     isAtInitialState,
     isLastPuzzle,
     loadError,
-    isLoading: (puzzles === null && loadError === null) || !engineSettled,
+    isAwaitingEngineMove,
+    isLoading: puzzles === null && loadError === null,
     engineStatus: stockfish.status,
     engineError: stockfish.error,
   };

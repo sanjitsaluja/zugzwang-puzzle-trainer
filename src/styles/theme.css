@@ -1139,6 +1139,11 @@
     animation: puzzle-status-fade-in 220ms ease-out both;
   }
 
+  .ui-puzzle-status[data-state="info"] {
+    color: var(--color-fg-secondary);
+    animation: puzzle-status-fade-in 220ms ease-out both;
+  }
+
   .ui-header-menu-btn {
     align-items: center;
     background: transparent;
@@ -1956,7 +1961,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .ui-puzzle-status[data-state="success"],
-  .ui-puzzle-status[data-state="danger"] {
+  .ui-puzzle-status[data-state="danger"],
+  .ui-puzzle-status[data-state="info"] {
     animation: none;
   }
 }

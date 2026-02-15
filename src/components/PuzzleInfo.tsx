@@ -8,6 +8,7 @@ interface PuzzleInfoProps {
   sideToMove: string;
   phase: GamePhase;
   isFailed: boolean;
+  isAwaitingEngineMove?: boolean;
 }
 
 const PUZZLE_TYPE_LABELS: Record<string, string> = {
@@ -37,10 +38,18 @@ export function PuzzleInfo({
   sideToMove,
   phase,
   isFailed,
+  isAwaitingEngineMove = false,
 }: PuzzleInfoProps) {
   const isComplete = phase === "complete";
-  const statusState = isComplete ? (isFailed ? "danger" : "success") : null;
-  const statusLabel = isFailed ? "Failed" : "Solved";
+  const isLoadingEngineForMove = phase === "validating" && isAwaitingEngineMove;
+  const statusState = isComplete
+    ? (isFailed ? "danger" : "success")
+    : isLoadingEngineForMove
+      ? "info"
+      : null;
+  const statusLabel = isComplete
+    ? (isFailed ? "Failed" : "Solved")
+    : "Loading engine...";
   const sideLabel = normalizeSideLabel(sideToMove);
   const sideColor = resolveSideColor(sideToMove);
 
@@ -54,7 +63,7 @@ export function PuzzleInfo({
       </h2>
       <div className="ui-puzzle-objective-group">
         <h3 className="ui-puzzle-type">{formatPuzzleTypeLabel(puzzleType)}</h3>
-        {!isComplete && (
+        {!isComplete && !isLoadingEngineForMove && (
           <p className="ui-puzzle-side" data-color={sideColor ?? undefined} aria-label={sideLabel}>
             {sideColor && <span className="ui-puzzle-side-indicator" aria-hidden="true" />}
             <span className="ui-puzzle-side-text">{sideLabel}</span>

@@ -8,11 +8,13 @@ import type {
   ValidateMoveFn,
 } from "@/types";
 
-type EngineStatus = "loading" | "ready" | "error";
+type EngineStatus = "idle" | "loading" | "ready" | "error";
 
 interface UseStockfishReturn {
   status: EngineStatus;
   error: string | null;
+  start: () => Promise<void>;
+  waitUntilReady: () => Promise<boolean>;
   createEngineStrategy: (
     solution: ParsedMove[],
     options?: {
@@ -31,31 +33,66 @@ function isCorrectMove(result: AnalysisResult, remainingMateDepth: number): bool
 
 export function useStockfish(): UseStockfishReturn {
   const engineRef = useRef<StockfishEngine | null>(null);
-  const [status, setStatus] = useState<EngineStatus>("loading");
+  const initPromiseRef = useRef<Promise<void> | null>(null);
+  const isUnmountedRef = useRef(false);
+  const statusRef = useRef<EngineStatus>("idle");
+  const [status, setStatus] = useState<EngineStatus>("idle");
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const engine = new StockfishEngine();
-    engineRef.current = engine;
+  const start = async (): Promise<void> => {
+    const currentStatus = statusRef.current;
+    if (currentStatus === "ready" || currentStatus === "error") return;
+    const existingPromise = initPromiseRef.current;
+    if (existingPromise) {
+      await existingPromise;
+      return;
+    }
 
-    engine
+    const engine = engineRef.current ?? new StockfishEngine();
+    engineRef.current = engine;
+    statusRef.current = "loading";
+    if (!isUnmountedRef.current) {
+      setStatus("loading");
+      setError(null);
+    }
+
+    const initPromise = engine
       .init()
       .then(() => {
-        if (!engine.isDisposed) {
+        if (!engine.isDisposed && !isUnmountedRef.current) {
+          statusRef.current = "ready";
           console.log("[useStockfish] Engine ready");
           setStatus("ready");
         }
       })
       .catch((err: unknown) => {
+        statusRef.current = "error";
         const message = err instanceof Error ? err.message : "Failed to load engine";
-        console.error("[useStockfish] Engine failed:", message);
-        setError(message);
-        setStatus("error");
+        if (!isUnmountedRef.current) {
+          console.error("[useStockfish] Engine failed:", message);
+          setError(message);
+          setStatus("error");
+        }
+      })
+      .finally(() => {
+        initPromiseRef.current = null;
       });
 
+    initPromiseRef.current = initPromise;
+    await initPromise;
+  };
+
+  const waitUntilReady = async (): Promise<boolean> => {
+    await start();
+    return statusRef.current === "ready";
+  };
+
+  useEffect(() => {
     return () => {
-      engine.dispose();
+      isUnmountedRef.current = true;
+      engineRef.current?.dispose();
       engineRef.current = null;
+      initPromiseRef.current = null;
     };
   }, []);
 
@@ -110,5 +147,5 @@ export function useStockfish(): UseStockfishReturn {
     };
   };
 
-  return { status, error, createEngineStrategy };
+  return { status, error, start, waitUntilReady, createEngineStrategy };
 }

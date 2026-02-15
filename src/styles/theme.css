@@ -1091,6 +1091,7 @@
     font-size: var(--type-role-puzzle-meta-size);
     font-weight: var(--type-role-puzzle-meta-weight);
     gap: var(--space-2);
+    line-height: var(--type-leading-tight);
     white-space: nowrap;
   }
 
@@ -1120,6 +1121,7 @@
     display: inline;
     font-size: var(--type-role-puzzle-status-size);
     font-weight: var(--type-role-puzzle-status-weight);
+    line-height: var(--type-leading-tight);
     white-space: nowrap;
   }
 
@@ -1129,10 +1131,12 @@
 
   .ui-puzzle-status[data-state="success"] {
     color: var(--color-accent-success);
+    animation: puzzle-status-fade-in 220ms ease-out both;
   }
 
   .ui-puzzle-status[data-state="danger"] {
     color: var(--color-accent-danger);
+    animation: puzzle-status-fade-in 220ms ease-out both;
   }
 
   .ui-header-menu-btn {
@@ -1575,7 +1579,8 @@
     }
 
     .ui-layout-board {
-      align-self: center;
+      align-items: flex-start;
+      align-self: stretch;
       min-height: 0;
       padding: 0;
       width: 100%;
@@ -1666,6 +1671,7 @@
       display: inline-flex;
       gap: var(--space-1);
       margin-top: 0;
+      min-height: calc(var(--type-role-puzzle-status-size) * var(--type-leading-tight));
       text-align: center;
     }
 
@@ -1709,8 +1715,7 @@
     }
 
     .ui-puzzle-status::before {
-      content: " \00b7 ";
-      color: var(--color-fg-secondary);
+      content: none;
     }
 
     .ui-move-list-panel {
@@ -1875,6 +1880,13 @@
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .ui-puzzle-status[data-state="success"],
+  .ui-puzzle-status[data-state="danger"] {
+    animation: none;
+  }
+}
+
 @keyframes stats-overlay-in {
   from {
     opacity: 0;
@@ -1962,5 +1974,15 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes puzzle-status-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
   }
 }

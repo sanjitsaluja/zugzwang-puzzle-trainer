@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solved Header Micro-Motifs (12)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin="anonymous" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&family=Space+Grotesk:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-0: #071423;
+        --bg-1: #0d2238;
+        --bg-2: #133052;
+        --panel: rgb(13 26 42 / 84%);
+        --panel-strong: rgb(9 18 31 / 96%);
+        --line: rgb(128 171 213 / 24%);
+        --text: #d9ecff;
+        --muted: #8ca7c6;
+        --ok: #4ff0a1;
+        --ok-soft: rgb(79 240 161 / 30%);
+        --danger: #ff6e84;
+        --danger-soft: rgb(255 110 132 / 30%);
+        --slot-width: 8.4ch;
+        --slot-height: 1.35rem;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--text);
+        font-family: "Space Grotesk", "Segoe UI", sans-serif;
+        background:
+          radial-gradient(circle at 12% 8%, rgb(67 121 173 / 28%), transparent 38%),
+          radial-gradient(circle at 89% 18%, rgb(95 165 200 / 16%), transparent 30%),
+          linear-gradient(155deg, var(--bg-0), var(--bg-1) 48%, var(--bg-2));
+      }
+
+      .shell {
+        width: min(1100px, calc(100% - 1.2rem));
+        margin: 0.7rem auto;
+        padding: 0.9rem;
+        border: 1px solid var(--line);
+        border-radius: 1rem;
+        background: linear-gradient(180deg, rgb(10 20 34 / 76%), rgb(9 17 30 / 90%));
+        box-shadow: 0 1.2rem 2.8rem rgb(3 8 16 / 34%);
+      }
+
+      .topbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.7rem;
+        margin-bottom: 0.8rem;
+      }
+
+      .headline {
+        margin: 0;
+        font-size: clamp(1rem, 2.2vw, 1.4rem);
+      }
+
+      .subhead {
+        margin: 0.2rem 0 0;
+        color: var(--muted);
+        font-size: 0.82rem;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+      }
+
+      button,
+      .toggle {
+        cursor: pointer;
+        border: 1px solid var(--line);
+        border-radius: 0.62rem;
+        color: var(--text);
+        background: linear-gradient(180deg, rgb(29 50 77 / 58%), rgb(16 33 53 / 78%));
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.71rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        padding: 0.5rem 0.68rem;
+      }
+
+      .toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+      }
+
+      .toggle input {
+        margin: 0;
+        accent-color: var(--ok);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 0.7rem;
+      }
+
+      .demo-card {
+        border: 1px solid var(--line);
+        border-radius: 0.84rem;
+        background: linear-gradient(180deg, var(--panel), var(--panel-strong));
+        padding: 0.72rem;
+        display: grid;
+        gap: 0.58rem;
+      }
+
+      .card-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+      }
+
+      .card-title {
+        margin: 0;
+        font-size: 0.82rem;
+      }
+
+      .card-flavor {
+        margin: 0.1rem 0 0;
+        color: var(--muted);
+        font-size: 0.72rem;
+      }
+
+      .replay-btn {
+        padding: 0.34rem 0.48rem;
+        font-size: 0.66rem;
+      }
+
+      .mode-btn[data-active] {
+        border-color: rgb(184 225 255 / 54%);
+        box-shadow: inset 0 0 0.5rem rgb(162 211 255 / 16%);
+      }
+
+      .header-sim {
+        border: 1px solid rgb(124 173 215 / 23%);
+        border-radius: 0.62rem;
+        background: linear-gradient(180deg, rgb(15 29 46 / 92%), rgb(11 22 36 / 82%));
+        padding: 0.52rem 0.58rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.55rem;
+      }
+
+      .header-copy { min-width: 0; }
+
+      .header-id {
+        margin: 0;
+        color: #c6daf0;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.71rem;
+      }
+
+      .header-goal {
+        margin: 0.15rem 0 0;
+        color: var(--muted);
+        font-size: 0.76rem;
+      }
+
+      .status-slot {
+        position: relative;
+        width: var(--slot-width);
+        min-width: var(--slot-width);
+        height: var(--slot-height);
+        min-height: var(--slot-height);
+        border-radius: 0.48rem;
+        border: 1px solid transparent;
+      }
+
+      .status-working,
+      .status-solved,
+      .status-failed {
+        position: absolute;
+        inset: 0;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.84rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        line-height: 1;
+        text-transform: uppercase;
+      }
+
+      .status-working {
+        color: var(--muted);
+        opacity: 1;
+      }
+
+      .status-solved {
+        color: var(--ok);
+        opacity: 0;
+        transform: scale(1);
+        text-shadow: 0 0 0 rgb(79 240 161 / 0%);
+      }
+
+      .status-failed {
+        color: var(--danger);
+        opacity: 0;
+        transform: scale(1);
+        text-shadow: 0 0 0 rgb(255 110 132 / 0%);
+      }
+
+      .status-working::after {
+        content: "";
+        display: inline-block;
+        width: 1.2ch;
+        text-align: left;
+      }
+
+      .fx { position: absolute; opacity: 0; pointer-events: none; }
+
+      .fx.dot {
+        width: 0.28rem;
+        height: 0.28rem;
+        border-radius: 999px;
+        left: 0.32rem;
+        top: 50%;
+        transform: translateY(-50%) scale(0.6);
+        background: var(--ok);
+      }
+
+      .fx.underline {
+        height: 1px;
+        width: 72%;
+        left: 14%;
+        bottom: 0.15rem;
+        background: linear-gradient(90deg, transparent, var(--ok), transparent);
+        transform: scaleX(0.2);
+        transform-origin: left center;
+      }
+
+      .fx.ring {
+        width: 1rem;
+        height: 1rem;
+        border: 1px solid rgb(79 240 161 / 0%);
+        border-radius: 999px;
+        right: -0.1rem;
+        top: 50%;
+        transform: translateY(-50%) scale(0.4);
+      }
+
+      .phase-working .status-working { opacity: 1; }
+      .phase-working .status-solved { opacity: 0; }
+      .phase-working .status-failed { opacity: 0; }
+
+      .phase-solved .status-working { opacity: 0; }
+      .phase-solved .status-solved { opacity: 1; }
+      .phase-solved .status-failed { opacity: 0; }
+
+      .phase-failed .status-working { opacity: 0; }
+      .phase-failed .status-solved { opacity: 0; }
+      .phase-failed .status-failed { opacity: 1; }
+
+      .m1.phase-solved .status-solved { animation: solved-fade 220ms ease-out both; }
+      .m2.phase-solved .status-solved { animation: solved-pop 240ms ease-out both; }
+      .m3.phase-solved .status-solved { animation: solved-glow 260ms ease-out both; }
+      .m4.phase-solved .status-slot { animation: border-on 220ms ease-out both; }
+      .m4.phase-solved .status-solved { animation: solved-fade 220ms ease-out both; }
+      .m5.phase-solved .status-solved { animation: solved-fade 180ms ease-out both; }
+      .m5.phase-solved .fx.dot { animation: dot-in 200ms ease-out both; }
+      .m6.phase-solved .status-solved { animation: solved-fade 200ms ease-out both; }
+      .m6.phase-solved .fx.underline { animation: underline-sweep 200ms ease-out both; }
+      .m7.phase-solved .status-solved { animation: solved-color-settle 260ms ease-out both; }
+      .m8.phase-solved .status-solved { animation: solved-tight-pop 200ms ease-out both; }
+      .m9.phase-solved .status-solved { animation: solved-fade 220ms ease-out both; }
+      .m9.phase-solved .fx.ring { animation: ring-soft 260ms ease-out; }
+      .m10.phase-solved .status-solved { animation: solved-fade 180ms ease-out both; }
+      .m10.phase-solved .status-slot { animation: slot-fill 220ms ease-out both; }
+      .m11.phase-solved .status-solved { animation: solved-fade 200ms ease-out both; }
+      .m11.phase-solved .status-working { animation: working-cut 120ms ease-out both; }
+      .m12.phase-solved .status-solved { animation: solved-pop 220ms cubic-bezier(0.2, 0.88, 0.27, 1.15) both; }
+
+      .m1.phase-failed .status-failed { animation: failed-fade 210ms ease-out both; }
+      .m2.phase-failed .status-failed { animation: failed-pop 220ms ease-out both; }
+      .m3.phase-failed .status-failed { animation: failed-glow 240ms ease-out both; }
+      .m4.phase-failed .status-slot { animation: failed-border-on 210ms ease-out both; }
+      .m4.phase-failed .status-failed { animation: failed-fade 210ms ease-out both; }
+      .m5.phase-failed .status-failed { animation: failed-fade 180ms ease-out both; }
+      .m5.phase-failed .fx.dot { animation: failed-dot-in 180ms ease-out both; }
+      .m6.phase-failed .status-failed { animation: failed-fade 190ms ease-out both; }
+      .m6.phase-failed .fx.underline { animation: failed-underline-sweep 190ms ease-out both; }
+      .m7.phase-failed .status-failed { animation: failed-color-settle 240ms ease-out both; }
+      .m8.phase-failed .status-failed { animation: failed-tight-pop 200ms ease-out both; }
+      .m9.phase-failed .status-failed { animation: failed-fade 210ms ease-out both; }
+      .m9.phase-failed .fx.ring { animation: failed-ring-soft 240ms ease-out; }
+      .m10.phase-failed .status-failed { animation: failed-fade 180ms ease-out both; }
+      .m10.phase-failed .status-slot { animation: failed-slot-fill 220ms ease-out both; }
+      .m11.phase-failed .status-failed { animation: failed-fade 190ms ease-out both; }
+      .m11.phase-failed .status-working { animation: working-cut 120ms ease-out both; }
+      .m12.phase-failed .status-failed { animation: failed-pop 220ms cubic-bezier(0.2, 0.88, 0.27, 1.15) both; }
+
+      .phase-working .status-working::after { animation: thinking-dots 860ms steps(1, end) infinite; }
+
+      @keyframes thinking-dots {
+        0%, 24% { content: ""; }
+        25%, 49% { content: "."; }
+        50%, 74% { content: ".."; }
+        75%, 100% { content: "..."; }
+      }
+
+      @keyframes solved-fade {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      @keyframes solved-pop {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+      }
+
+      @keyframes solved-tight-pop {
+        from { opacity: 0; transform: scale(0.97); }
+        70% { opacity: 1; transform: scale(1.02); }
+        to { opacity: 1; transform: scale(1); }
+      }
+
+      @keyframes solved-glow {
+        from { opacity: 0; text-shadow: 0 0 0 rgb(79 240 161 / 0%); }
+        to { opacity: 1; text-shadow: 0 0 0.32rem rgb(79 240 161 / 34%); }
+      }
+
+      @keyframes solved-color-settle {
+        from { opacity: 0.9; color: #b6c9de; }
+        to { opacity: 1; color: var(--ok); }
+      }
+
+      @keyframes border-on {
+        from { border-color: transparent; }
+        to { border-color: rgb(79 240 161 / 42%); }
+      }
+
+      @keyframes dot-in {
+        from { opacity: 0; transform: translateY(-50%) scale(0.3); }
+        to { opacity: 1; transform: translateY(-50%) scale(1); }
+      }
+
+      @keyframes underline-sweep {
+        from { opacity: 0; transform: scaleX(0.2); }
+        to { opacity: 1; transform: scaleX(1); }
+      }
+
+      @keyframes ring-soft {
+        0% { opacity: 0; border-color: rgb(79 240 161 / 0%); transform: translateY(-50%) scale(0.4); }
+        35% { opacity: 0.8; border-color: rgb(79 240 161 / 68%); }
+        100% { opacity: 0; border-color: rgb(79 240 161 / 0%); transform: translateY(-50%) scale(1.6); }
+      }
+
+      @keyframes slot-fill {
+        from { box-shadow: inset 0 0 0 rgb(79 240 161 / 0%); border-color: transparent; }
+        to { box-shadow: inset 0 0 0.45rem rgb(79 240 161 / 16%); border-color: rgb(79 240 161 / 36%); }
+      }
+
+      @keyframes failed-fade {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      @keyframes failed-pop {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+      }
+
+      @keyframes failed-tight-pop {
+        from { opacity: 0; transform: scale(0.97); }
+        70% { opacity: 1; transform: scale(1.02); }
+        to { opacity: 1; transform: scale(1); }
+      }
+
+      @keyframes failed-glow {
+        from { opacity: 0; text-shadow: 0 0 0 rgb(255 110 132 / 0%); }
+        to { opacity: 1; text-shadow: 0 0 0.32rem rgb(255 110 132 / 34%); }
+      }
+
+      @keyframes failed-color-settle {
+        from { opacity: 0.9; color: #b6c9de; }
+        to { opacity: 1; color: var(--danger); }
+      }
+
+      @keyframes failed-border-on {
+        from { border-color: transparent; }
+        to { border-color: rgb(255 110 132 / 42%); }
+      }
+
+      @keyframes failed-dot-in {
+        from { opacity: 0; transform: translateY(-50%) scale(0.3); background: var(--danger); }
+        to { opacity: 1; transform: translateY(-50%) scale(1); background: var(--danger); }
+      }
+
+      @keyframes failed-underline-sweep {
+        from { opacity: 0; transform: scaleX(0.2); background: linear-gradient(90deg, transparent, var(--danger), transparent); }
+        to { opacity: 1; transform: scaleX(1); background: linear-gradient(90deg, transparent, var(--danger), transparent); }
+      }
+
+      @keyframes failed-ring-soft {
+        0% { opacity: 0; border-color: rgb(255 110 132 / 0%); transform: translateY(-50%) scale(0.4); }
+        35% { opacity: 0.8; border-color: rgb(255 110 132 / 68%); }
+        100% { opacity: 0; border-color: rgb(255 110 132 / 0%); transform: translateY(-50%) scale(1.6); }
+      }
+
+      @keyframes failed-slot-fill {
+        from { box-shadow: inset 0 0 0 rgb(255 110 132 / 0%); border-color: transparent; }
+        to { box-shadow: inset 0 0 0.45rem rgb(255 110 132 / 16%); border-color: rgb(255 110 132 / 36%); }
+      }
+
+      @keyframes working-cut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+      }
+
+      @media (width <= 720px) {
+        .shell {
+          width: calc(100% - 0.8rem);
+          margin: 0.4rem auto;
+          padding: 0.65rem;
+        }
+
+        .grid { grid-template-columns: 1fr; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        * { animation: none !important; transition: none !important; }
+      }
+
+      :root[data-reduced-motion="true"] * {
+        animation: none !important;
+        transition: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <div class="topbar">
+        <div>
+          <h1 class="headline">Solved Header Micro-Motifs (12 options)</h1>
+          <p class="subhead">Short motifs only. Typical solved/failed animation budget: 180ms to 260ms.</p>
+        </div>
+        <div class="controls">
+          <button type="button" class="mode-btn" id="mode-solved" data-mode="solved" data-active>Solved Mode</button>
+          <button type="button" class="mode-btn" id="mode-failed" data-mode="failed">Failed Mode</button>
+          <button type="button" id="replay-all">Replay All</button>
+          <button type="button" id="shuffle-order">Shuffle Order</button>
+          <label class="toggle" for="reduce-motion">
+            <input id="reduce-motion" type="checkbox" />
+            Reduced Motion
+          </label>
+        </div>
+      </div>
+      <section id="grid" class="grid" aria-label="Micro motif options"></section>
+    </main>
+
+    <script>
+      const motifs = [
+        { id: "m1", name: "01 Fade In", flavor: "fast text fade" },
+        { id: "m2", name: "02 Soft Pop", flavor: "tiny scale up" },
+        { id: "m3", name: "03 Glow Blink", flavor: "single glow settle" },
+        { id: "m4", name: "04 Border On", flavor: "pill border activates" },
+        { id: "m5", name: "05 Dot + Word", flavor: "dot appears then text" },
+        { id: "m6", name: "06 Underline Sweep", flavor: "1px underline sweep" },
+        { id: "m7", name: "07 Color Settle", flavor: "neutral to green" },
+        { id: "m8", name: "08 Tight Pop", flavor: "micro spring" },
+        { id: "m9", name: "09 Mini Ring", flavor: "very soft ring" },
+        { id: "m10", name: "10 Fill Hint", flavor: "subtle pill fill" },
+        { id: "m11", name: "11 Hard Swap", flavor: "quick cut to solved" },
+        { id: "m12", name: "12 Crisp Confirm", flavor: "punchy but short" },
+      ];
+
+      const grid = document.getElementById("grid");
+      const timers = new WeakMap();
+      let mode = 'solved';
+
+      function cardMarkup(item) {
+        return `
+          <article class="demo-card ${item.id}" data-duration="240">
+            <div class="card-head">
+              <div>
+                <h2 class="card-title">${item.name}</h2>
+                <p class="card-flavor">${item.flavor}</p>
+              </div>
+              <button class="replay-btn" type="button">Replay</button>
+            </div>
+
+            <div class="header-sim">
+              <div class="header-copy">
+                <p class="header-id">#4 / 4,462</p>
+                <p class="header-goal">Mate in 1</p>
+              </div>
+              <div class="status-slot">
+                <p class="status-working">working</p>
+                <p class="status-solved">SOLVED</p>
+                <p class="status-failed">FAILED</p>
+                <span class="fx dot" aria-hidden="true"></span>
+                <span class="fx underline" aria-hidden="true"></span>
+                <span class="fx ring" aria-hidden="true"></span>
+              </div>
+            </div>
+          </article>
+        `;
+      }
+
+      motifs.forEach((m) => grid.insertAdjacentHTML("beforeend", cardMarkup(m)));
+
+      function cards() { return Array.from(document.querySelectorAll('.demo-card')); }
+
+      function setMode(nextMode) {
+        mode = nextMode === 'failed' ? 'failed' : 'solved';
+        document.querySelectorAll('.mode-btn').forEach((btn) => {
+          if (btn.dataset.mode === mode) btn.setAttribute('data-active', '');
+          else btn.removeAttribute('data-active');
+        });
+      }
+
+      function replay(card) {
+        const prior = timers.get(card);
+        if (prior) window.clearTimeout(prior);
+
+        card.classList.remove('phase-working', 'phase-solved', 'phase-failed');
+        void card.offsetWidth;
+        card.classList.add('phase-working');
+
+        const reduced = document.documentElement.dataset.reducedMotion === 'true';
+        const delay = reduced ? 1 : 180;
+
+        const timer = window.setTimeout(() => {
+          card.classList.remove('phase-working');
+          card.classList.add(mode === 'failed' ? 'phase-failed' : 'phase-solved');
+        }, delay);
+
+        timers.set(card, timer);
+      }
+
+      function replayAll() {
+        cards().forEach((card, i) => {
+          window.setTimeout(() => replay(card), i * 55);
+        });
+      }
+
+      function shuffleOrder() {
+        const shuffled = cards().sort(() => Math.random() - 0.5);
+        shuffled.forEach((c) => grid.append(c));
+        replayAll();
+      }
+
+      grid.addEventListener('click', (e) => {
+        const btn = e.target.closest('.replay-btn');
+        if (!btn) return;
+        const card = btn.closest('.demo-card');
+        if (card) replay(card);
+      });
+
+      document.getElementById('replay-all').addEventListener('click', replayAll);
+      document.getElementById('shuffle-order').addEventListener('click', shuffleOrder);
+      document.getElementById('mode-solved').addEventListener('click', () => {
+        setMode('solved');
+        replayAll();
+      });
+      document.getElementById('mode-failed').addEventListener('click', () => {
+        setMode('failed');
+        replayAll();
+      });
+      document.getElementById('reduce-motion').addEventListener('change', (e) => {
+        document.documentElement.dataset.reducedMotion = e.target.checked ? 'true' : 'false';
+        replayAll();
+      });
+
+      document.documentElement.dataset.reducedMotion = 'false';
+      setMode('solved');
+      replayAll();
+    </script>
+  </body>
+</html>

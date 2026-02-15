@@ -1,0 +1,989 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Radar Lock State Prototype</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin="anonymous" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-0: #050d19;
+        --bg-1: #0a1829;
+        --bg-2: #10253e;
+        --panel: rgb(12 25 41 / 84%);
+        --panel-strong: rgb(8 18 31 / 96%);
+        --line: rgb(139 182 225 / 24%);
+        --line-strong: rgb(149 201 255 / 35%);
+        --txt: #d8edff;
+        --muted: #8ea8c3;
+        --ok: #53e8a1;
+        --ok-soft: rgb(83 232 161 / 24%);
+        --warn: #efbc57;
+        --danger: #ff6478;
+        --danger-soft: rgb(255 100 120 / 20%);
+        --status-width: 8.4ch;
+        --status-height: 1.35rem;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--txt);
+        font-family: "Space Grotesk", "Segoe UI", sans-serif;
+        background:
+          radial-gradient(circle at 12% 10%, rgb(97 159 216 / 20%), transparent 36%),
+          radial-gradient(circle at 89% 14%, rgb(98 182 239 / 16%), transparent 28%),
+          linear-gradient(145deg, var(--bg-0), var(--bg-1) 46%, var(--bg-2));
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(rgb(154 197 241 / 5%) 1px, transparent 1px),
+          linear-gradient(90deg, rgb(154 197 241 / 5%) 1px, transparent 1px);
+        background-size: 1rem 1rem;
+        mask-image: radial-gradient(circle at center, black 36%, transparent 100%);
+      }
+
+      .shell {
+        width: min(1200px, calc(100% - 1.2rem));
+        margin: 0.6rem auto;
+        border: 1px solid var(--line);
+        border-radius: 1rem;
+        padding: 0.9rem;
+        background: linear-gradient(180deg, rgb(10 21 35 / 74%), rgb(8 16 27 / 92%));
+        box-shadow:
+          0 1.2rem 3rem rgb(0 0 0 / 38%),
+          inset 0 0 0.8rem rgb(139 191 243 / 10%);
+      }
+
+      .head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 0.7rem;
+        margin-bottom: 0.9rem;
+      }
+
+      .title {
+        margin: 0;
+        font-size: clamp(1rem, 2vw, 1.4rem);
+        letter-spacing: 0.02em;
+      }
+
+      .subtitle {
+        margin: 0.2rem 0 0;
+        color: var(--muted);
+        font-size: 0.86rem;
+      }
+
+      .top-controls {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.45rem;
+      }
+
+      button,
+      .toggle {
+        cursor: pointer;
+        border: 1px solid var(--line);
+        border-radius: 0.62rem;
+        color: var(--txt);
+        background: linear-gradient(180deg, rgb(28 49 73 / 58%), rgb(15 32 50 / 78%));
+        padding: 0.5rem 0.7rem;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.72rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      button:hover,
+      .toggle:hover {
+        border-color: var(--line-strong);
+      }
+
+      .toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.42rem;
+      }
+
+      .toggle input {
+        margin: 0;
+        accent-color: var(--ok);
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.9fr);
+        gap: 0.85rem;
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 0.82rem;
+        background: linear-gradient(180deg, var(--panel), var(--panel-strong));
+        padding: 0.75rem;
+      }
+
+      .panel-title {
+        margin: 0;
+        font-size: 0.84rem;
+        letter-spacing: 0.03em;
+      }
+
+      .panel-note {
+        margin: 0.2rem 0 0;
+        color: var(--muted);
+        font-size: 0.75rem;
+      }
+
+      .phone {
+        margin-top: 0.7rem;
+        border: 1px solid rgb(144 188 231 / 27%);
+        border-radius: 1rem;
+        background: linear-gradient(180deg, rgb(15 28 47 / 96%), rgb(8 16 30 / 96%));
+        overflow: hidden;
+      }
+
+      .sim-header {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 0.52rem;
+        padding: 0.55rem 0.72rem;
+        min-height: 4.35rem;
+        border-bottom: 1px solid rgb(140 186 229 / 20%);
+        background: linear-gradient(180deg, rgb(31 43 73 / 92%), rgb(22 35 60 / 90%));
+      }
+
+      .logo {
+        margin: 0;
+        color: #6f82a0;
+        font-size: 0.86rem;
+        font-weight: 700;
+      }
+
+      .puzzle-info {
+        text-align: center;
+        min-width: 0;
+      }
+
+      .puzzle-id {
+        margin: 0;
+        color: #cfdef3;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.98rem;
+      }
+
+      .puzzle-meta {
+        margin: 0.14rem 0 0;
+        color: var(--muted);
+        font-size: 0.81rem;
+      }
+
+      .status-row {
+        margin-top: 0.14rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.28rem;
+      }
+
+      .status-slot {
+        position: relative;
+        width: var(--status-width);
+        min-width: var(--status-width);
+        height: var(--status-height);
+        min-height: var(--status-height);
+        border-radius: 0.5rem;
+        border: 1px solid transparent;
+        overflow: visible;
+      }
+
+      .status-word {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        margin: 0;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.84rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        line-height: 1;
+        text-align: center;
+        text-transform: uppercase;
+        transform: translateY(-50%) scale(0.94);
+        transform-origin: 50% 50%;
+        opacity: 0;
+        white-space: nowrap;
+        z-index: 2;
+      }
+
+      .word-locking,
+      .word-solved {
+        color: var(--ok);
+      }
+
+      .word-lost,
+      .word-jammed,
+      .word-failed {
+        color: var(--danger);
+      }
+
+      .word-locking::after {
+        content: "";
+        display: inline-block;
+        width: 1.2ch;
+        text-align: left;
+      }
+
+      .lock-ring,
+      .good-ping,
+      .jam-wave {
+        position: absolute;
+        pointer-events: none;
+        opacity: 0;
+      }
+
+      .lock-ring,
+      .good-ping,
+      .jam-wave {
+        top: 50%;
+        right: -0.2rem;
+        width: 1rem;
+        height: 1rem;
+        border-radius: 999px;
+        transform: translateY(-50%) scale(0.4);
+      }
+
+      .lock-ring {
+        border: 1px solid rgb(83 232 161 / 0%);
+      }
+
+      .good-ping {
+        border: 1px solid rgb(83 232 161 / 0%);
+      }
+
+      .jam-wave {
+        border: 1px solid rgb(255 100 120 / 0%);
+      }
+
+      .simulator[data-word="locking"] .word-locking,
+      .simulator[data-word="solved"] .word-solved,
+      .simulator[data-word="lost"] .word-lost,
+      .simulator[data-word="jammed"] .word-jammed,
+      .simulator[data-word="failed"] .word-failed {
+        opacity: 1;
+        transform: translateY(-50%) scale(1);
+      }
+
+      .simulator.state-locking .word-locking {
+        animation: locking-think 1.05s ease-in-out infinite;
+      }
+
+      .simulator.state-locking .word-locking::after {
+        animation: locking-dots 1.05s steps(1, end) infinite;
+      }
+
+      .simulator.state-locking .status-slot {
+        border-color: rgb(83 232 161 / 45%);
+        box-shadow: inset 0 0 0.5rem rgb(83 232 161 / 12%);
+      }
+
+      .simulator.state-solved .word-solved {
+        animation: solved-in 560ms cubic-bezier(0.2, 0.9, 0.25, 1.22) both;
+      }
+
+      .simulator.state-solved .lock-ring {
+        opacity: 1;
+        animation: lock-ripple 880ms ease-out;
+      }
+
+      .simulator.state-solved .status-slot {
+        border-color: rgb(83 232 161 / 44%);
+        box-shadow:
+          inset 0 0 0.65rem var(--ok-soft),
+          0 0 1rem rgb(83 232 161 / 18%);
+      }
+
+      .simulator.state-good .good-ping {
+        opacity: 1;
+        animation: good-pulse 520ms ease-out;
+      }
+
+      .simulator.state-wrong .status-slot,
+      .simulator.state-jammed .status-slot {
+        border-color: rgb(255 100 120 / 48%);
+        box-shadow: inset 0 0 0.65rem var(--danger-soft);
+      }
+
+      .simulator.state-wrong .word-lost,
+      .simulator.state-jammed .word-jammed {
+        animation: wrong-flicker 520ms steps(2, end);
+      }
+
+      .simulator.state-jammed .jam-wave {
+        opacity: 1;
+        animation: jam-pulse 700ms ease-out;
+      }
+
+      .simulator.state-failed .status-slot {
+        border-color: rgb(255 100 120 / 48%);
+        box-shadow:
+          inset 0 0 0.9rem var(--danger-soft),
+          0 0 0.8rem rgb(255 100 120 / 22%);
+      }
+
+      .simulator.state-failed .word-failed {
+        animation: failed-settle 550ms cubic-bezier(0.21, 0.91, 0.24, 1.15) both;
+      }
+
+      .time-stack {
+        text-align: right;
+      }
+
+      .time-value {
+        margin: 0;
+        color: #dce9ff;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 1.18rem;
+      }
+
+      .time-label {
+        margin: 0.08rem 0 0;
+        color: var(--muted);
+        font-size: 0.73rem;
+      }
+
+      .board {
+        height: min(44vw, 340px);
+        max-height: 340px;
+        min-height: 230px;
+        border-top: 1px solid rgb(136 180 219 / 20%);
+        background:
+          linear-gradient(45deg, rgb(35 49 78 / 72%) 25%, transparent 25%),
+          linear-gradient(-45deg, rgb(35 49 78 / 72%) 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, rgb(35 49 78 / 72%) 75%),
+          linear-gradient(-45deg, transparent 75%, rgb(35 49 78 / 72%) 75%),
+          linear-gradient(180deg, rgb(16 32 55), rgb(11 24 42));
+        background-size: 3.5rem 3.5rem;
+        background-position:
+          0 0,
+          0 1.75rem,
+          1.75rem -1.75rem,
+          -1.75rem 0,
+          0 0;
+      }
+
+      .actions {
+        margin-top: 0.75rem;
+        display: grid;
+        gap: 0.45rem;
+      }
+
+      .action-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+      }
+
+      .action-row button {
+        flex: 1 1 140px;
+      }
+
+      .metrics {
+        margin-top: 0.65rem;
+        border: 1px solid var(--line);
+        border-radius: 0.66rem;
+        background: rgb(10 21 36 / 75%);
+        padding: 0.55rem;
+      }
+
+      .metrics-grid {
+        margin: 0;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.38rem;
+      }
+
+      .metrics-grid div {
+        border: 1px solid rgb(142 182 222 / 19%);
+        border-radius: 0.48rem;
+        padding: 0.38rem;
+        background: rgb(18 35 56 / 54%);
+      }
+
+      .metrics-grid dt {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.64rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .metrics-grid dd {
+        margin: 0.17rem 0 0;
+        color: #dcecff;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.76rem;
+      }
+
+      .policy-list,
+      .log-list {
+        margin: 0.7rem 0 0;
+        padding-left: 1rem;
+        color: #c7def5;
+        font-size: 0.8rem;
+        line-height: 1.45;
+      }
+
+      .policy-list li + li,
+      .log-list li + li {
+        margin-top: 0.35rem;
+      }
+
+      .scenario-buttons {
+        margin-top: 0.75rem;
+        display: grid;
+        gap: 0.45rem;
+      }
+
+      .scenario-buttons button {
+        width: 100%;
+        text-align: left;
+      }
+
+      .log-wrap {
+        margin-top: 0.7rem;
+        border: 1px solid var(--line);
+        border-radius: 0.66rem;
+        background: rgb(10 21 36 / 70%);
+        padding: 0.56rem;
+      }
+
+      .log-head {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.67rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .log-list {
+        margin-top: 0.5rem;
+        max-height: 13.5rem;
+        overflow: auto;
+        padding-right: 0.3rem;
+      }
+
+      .log-list code {
+        color: #9ed6ff;
+      }
+
+      @keyframes locking-think {
+        0%,
+        100% {
+          opacity: 0.78;
+          text-shadow: 0 0 0 rgb(83 232 161 / 0%);
+        }
+
+        50% {
+          opacity: 1;
+          text-shadow: 0 0 0.35rem rgb(83 232 161 / 32%);
+        }
+      }
+
+      @keyframes locking-dots {
+        0%,
+        19% {
+          content: "";
+        }
+
+        20%,
+        44% {
+          content: ".";
+        }
+
+        45%,
+        69% {
+          content: "..";
+        }
+
+        70%,
+        100% {
+          content: "...";
+        }
+      }
+
+      @keyframes solved-in {
+        0% {
+          opacity: 0;
+          transform: translateY(-50%) scale(0.85);
+          text-shadow: 0 0 0 rgb(83 232 161 / 0%);
+        }
+
+        66% {
+          opacity: 1;
+          transform: translateY(-50%) scale(1.08);
+          text-shadow: 0 0 0.8rem rgb(83 232 161 / 38%);
+        }
+
+        100% {
+          opacity: 1;
+          transform: translateY(-50%) scale(1);
+          text-shadow: 0 0 0.2rem rgb(83 232 161 / 26%);
+        }
+      }
+
+      @keyframes lock-ripple {
+        0% {
+          opacity: 0;
+          border-color: rgb(83 232 161 / 0%);
+          transform: translateY(-50%) scale(0.35);
+        }
+
+        22% {
+          opacity: 0.9;
+          border-color: rgb(83 232 161 / 82%);
+        }
+
+        100% {
+          opacity: 0;
+          border-color: rgb(83 232 161 / 0%);
+          transform: translateY(-50%) scale(3.1);
+        }
+      }
+
+      @keyframes good-pulse {
+        0% {
+          opacity: 0;
+          border-color: rgb(83 232 161 / 0%);
+          transform: translateY(-50%) scale(0.3);
+        }
+
+        36% {
+          opacity: 0.8;
+          border-color: rgb(83 232 161 / 74%);
+        }
+
+        100% {
+          opacity: 0;
+          border-color: rgb(83 232 161 / 0%);
+          transform: translateY(-50%) scale(2);
+        }
+      }
+
+      @keyframes wrong-flicker {
+        0% {
+          opacity: 0;
+          transform: translateY(-50%) translateX(-1px);
+        }
+
+        30% {
+          opacity: 1;
+          transform: translateY(-50%) translateX(1px);
+        }
+
+        58% {
+          opacity: 0.7;
+          transform: translateY(-50%) translateX(-1px);
+        }
+
+        100% {
+          opacity: 1;
+          transform: translateY(-50%) translateX(0);
+        }
+      }
+
+      @keyframes jam-pulse {
+        0% {
+          opacity: 0;
+          border-color: rgb(255 100 120 / 0%);
+          transform: translateY(-50%) scale(0.35);
+        }
+
+        30% {
+          opacity: 0.88;
+          border-color: rgb(255 100 120 / 70%);
+        }
+
+        100% {
+          opacity: 0;
+          border-color: rgb(255 100 120 / 0%);
+          transform: translateY(-50%) scale(2.5);
+        }
+      }
+
+      @keyframes failed-settle {
+        0% {
+          opacity: 0;
+          transform: translateY(-50%) scale(1.2);
+        }
+
+        52% {
+          opacity: 1;
+          transform: translateY(-50%) scale(0.93);
+        }
+
+        100% {
+          opacity: 1;
+          transform: translateY(-50%) scale(1);
+        }
+      }
+
+      @media (width <= 960px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .board {
+          height: min(56vw, 300px);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+
+      :root[data-reduce-motion="true"] * {
+        animation: none !important;
+        transition: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <div class="head">
+        <div>
+          <h1 class="title">Radar Lock State Machine Prototype</h1>
+          <p class="subtitle">Visualizes state behavior for correct, wrong, final clean solve, and final failed-after-mistake.</p>
+        </div>
+        <div class="top-controls">
+          <button type="button" id="run-clean">Scenario: Clean Solve</button>
+          <button type="button" id="run-failed">Scenario: Wrong -> Failed</button>
+          <label class="toggle" for="reduce-motion">
+            <input id="reduce-motion" type="checkbox" />
+            Reduced Motion
+          </label>
+        </div>
+      </div>
+
+      <section class="layout">
+        <article class="panel">
+          <h2 class="panel-title">Live Header Simulator</h2>
+          <p class="panel-note">Status slot is fixed-size. All words use same type metrics to avoid layout shifts.</p>
+
+          <div class="phone simulator" id="simulator" data-word="none">
+            <header class="sim-header">
+              <p class="logo">zugzwang</p>
+              <div class="puzzle-info">
+                <p class="puzzle-id">#4 / 4,462</p>
+                <div class="status-row">
+                  <p class="puzzle-meta">Mate in 1</p>
+                  <div class="status-slot" aria-live="polite">
+                    <p class="status-word word-locking">LOCKING</p>
+                    <p class="status-word word-solved">SOLVED</p>
+                    <p class="status-word word-lost">LOST</p>
+                    <p class="status-word word-jammed">JAMMED</p>
+                    <p class="status-word word-failed">FAILED</p>
+                    <span class="lock-ring" aria-hidden="true"></span>
+                    <span class="good-ping" aria-hidden="true"></span>
+                    <span class="jam-wave" aria-hidden="true"></span>
+                  </div>
+                </div>
+              </div>
+              <div class="time-stack">
+                <p class="time-value">00:02</p>
+                <p class="time-label">time</p>
+              </div>
+            </header>
+            <div class="board" id="board"></div>
+          </div>
+
+          <div class="actions">
+            <div class="action-row">
+              <button type="button" id="good-move">Correct Move (Not Final)</button>
+              <button type="button" id="wrong-move">Wrong Move</button>
+            </div>
+            <div class="action-row">
+              <button type="button" id="final-move">Final Correct Move</button>
+              <button type="button" id="reset-puzzle">New Puzzle / Reset</button>
+            </div>
+          </div>
+
+          <section class="metrics">
+            <dl class="metrics-grid">
+              <div>
+                <dt>Run Flag</dt>
+                <dd id="metric-flag">clean</dd>
+              </div>
+              <div>
+                <dt>Header Word</dt>
+                <dd id="metric-word">none</dd>
+              </div>
+              <div>
+                <dt>Board Top Delta</dt>
+                <dd id="metric-delta">0px</dd>
+              </div>
+            </dl>
+          </section>
+        </article>
+
+        <article class="panel">
+          <h2 class="panel-title">Behavior Policy</h2>
+          <ol class="policy-list">
+            <li>No <code>WORKING</code> in normal play. Neutral state stays quiet.</li>
+            <li>Correct move (not final): micro green ping only, no word swap.</li>
+            <li>Wrong move: brief red <code>LOST</code> signal, then back to neutral.</li>
+            <li>Final correct on clean run: <code>LOCKING</code> -> <code>SOLVED</code>.</li>
+            <li>Final correct after any mistake: <code>JAMMED</code> -> <code>FAILED</code>.</li>
+          </ol>
+
+          <div class="scenario-buttons">
+            <button type="button" id="scenario-a">Scenario A: clean run (good, good, final)</button>
+            <button type="button" id="scenario-b">Scenario B: wrong then continue (no final)</button>
+            <button type="button" id="scenario-c">Scenario C: wrong then final (failed)</button>
+          </div>
+
+          <section class="log-wrap">
+            <p class="log-head">Event log</p>
+            <ol class="log-list" id="log-list"></ol>
+          </section>
+        </article>
+      </section>
+    </main>
+
+    <script>
+      const simulator = document.getElementById("simulator");
+      const board = document.getElementById("board");
+      const logList = document.getElementById("log-list");
+      const metricFlag = document.getElementById("metric-flag");
+      const metricWord = document.getElementById("metric-word");
+      const metricDelta = document.getElementById("metric-delta");
+      const reduceMotionInput = document.getElementById("reduce-motion");
+
+      let hasMistake = false;
+      let busy = false;
+      let baselineTop = null;
+      const timers = new Set();
+
+      function motion(ms) {
+        return reduceMotionInput.checked ? 1 : ms;
+      }
+
+      function schedule(fn, ms) {
+        const id = window.setTimeout(() => {
+          timers.delete(id);
+          fn();
+        }, ms);
+        timers.add(id);
+        return id;
+      }
+
+      function clearTimers() {
+        timers.forEach((id) => window.clearTimeout(id));
+        timers.clear();
+      }
+
+      function now() {
+        return new Date().toLocaleTimeString([], {
+          hour12: false,
+          minute: "2-digit",
+          second: "2-digit",
+        });
+      }
+
+      function log(message) {
+        const item = document.createElement("li");
+        item.innerHTML = `<code>${now()}</code> ${message}`;
+        logList.prepend(item);
+        while (logList.children.length > 14) {
+          logList.removeChild(logList.lastChild);
+        }
+      }
+
+      function setWord(word) {
+        simulator.dataset.word = word;
+        metricWord.textContent = word;
+      }
+
+      function updateMetrics() {
+        metricFlag.textContent = hasMistake ? "mistake-latched" : "clean";
+
+        const top = board.getBoundingClientRect().top;
+        if (baselineTop === null) baselineTop = top;
+        const delta = +(top - baselineTop).toFixed(2);
+        metricDelta.textContent = `${delta}px`;
+      }
+
+      function removeStateClasses() {
+        simulator.classList.remove(
+          "state-good",
+          "state-wrong",
+          "state-locking",
+          "state-solved",
+          "state-jammed",
+          "state-failed",
+        );
+      }
+
+      function resetPuzzle(reason = "manual reset") {
+        clearTimers();
+        busy = false;
+        hasMistake = false;
+        removeStateClasses();
+        baselineTop = board.getBoundingClientRect().top;
+        setWord("none");
+        log(`Puzzle reset (${reason})`);
+        updateMetrics();
+      }
+
+      function pulseGood() {
+        if (busy) return;
+        if (simulator.classList.contains("state-solved") || simulator.classList.contains("state-failed")) {
+          resetPuzzle("auto reset before good move");
+        }
+
+        simulator.classList.remove("state-good");
+        void simulator.offsetWidth;
+        simulator.classList.add("state-good");
+        schedule(() => simulator.classList.remove("state-good"), motion(520));
+        log("Correct move, not final: kept neutral header and emitted a small ping");
+        updateMetrics();
+      }
+
+      function wrongMove() {
+        if (busy) return;
+        if (simulator.classList.contains("state-solved") || simulator.classList.contains("state-failed")) {
+          resetPuzzle("auto reset before wrong move");
+        }
+
+        hasMistake = true;
+        simulator.classList.remove("state-good", "state-locking", "state-solved");
+        simulator.classList.add("state-wrong");
+        setWord("lost");
+        log("Wrong move: latched run as mistake, flashed LOST signal");
+
+        schedule(() => {
+          simulator.classList.remove("state-wrong");
+          if (!busy) setWord("none");
+          updateMetrics();
+        }, motion(650));
+
+        updateMetrics();
+      }
+
+      function finalCorrect() {
+        if (busy) return;
+        if (simulator.classList.contains("state-solved") || simulator.classList.contains("state-failed")) {
+          resetPuzzle("auto reset before final move");
+        }
+
+        busy = true;
+        simulator.classList.remove("state-good", "state-wrong");
+
+        if (!hasMistake) {
+          simulator.classList.add("state-locking");
+          setWord("locking");
+          log("Final correct move on clean run: LOCKING phase");
+
+          schedule(() => {
+            simulator.classList.remove("state-locking");
+            simulator.classList.add("state-solved");
+            setWord("solved");
+            log("Lock acquired: SOLVED");
+            busy = false;
+            updateMetrics();
+          }, motion(460));
+
+          updateMetrics();
+          return;
+        }
+
+        simulator.classList.add("state-jammed");
+        setWord("jammed");
+        log("Final move reached but run has prior mistake: JAMMED");
+
+        schedule(() => {
+          simulator.classList.remove("state-jammed");
+          simulator.classList.add("state-failed");
+          setWord("failed");
+          log("Completion state committed: FAILED");
+          busy = false;
+          updateMetrics();
+        }, motion(540));
+
+        updateMetrics();
+      }
+
+      function runScenarioA() {
+        resetPuzzle("scenario A");
+        schedule(() => pulseGood(), motion(220));
+        schedule(() => pulseGood(), motion(760));
+        schedule(() => finalCorrect(), motion(1260));
+      }
+
+      function runScenarioB() {
+        resetPuzzle("scenario B");
+        schedule(() => wrongMove(), motion(220));
+        schedule(() => pulseGood(), motion(980));
+      }
+
+      function runScenarioC() {
+        resetPuzzle("scenario C");
+        schedule(() => wrongMove(), motion(220));
+        schedule(() => pulseGood(), motion(980));
+        schedule(() => finalCorrect(), motion(1520));
+      }
+
+      document.getElementById("good-move").addEventListener("click", pulseGood);
+      document.getElementById("wrong-move").addEventListener("click", wrongMove);
+      document.getElementById("final-move").addEventListener("click", finalCorrect);
+      document
+        .getElementById("reset-puzzle")
+        .addEventListener("click", () => resetPuzzle("manual reset"));
+
+      document.getElementById("scenario-a").addEventListener("click", runScenarioA);
+      document.getElementById("scenario-b").addEventListener("click", runScenarioB);
+      document.getElementById("scenario-c").addEventListener("click", runScenarioC);
+      document.getElementById("run-clean").addEventListener("click", runScenarioA);
+      document.getElementById("run-failed").addEventListener("click", runScenarioC);
+
+      reduceMotionInput.addEventListener("change", () => {
+        document.documentElement.dataset.reduceMotion = reduceMotionInput.checked
+          ? "true"
+          : "false";
+        log(
+          reduceMotionInput.checked
+            ? "Reduced motion enabled"
+            : "Reduced motion disabled",
+        );
+      });
+
+      window.addEventListener("resize", updateMetrics);
+
+      document.documentElement.dataset.reduceMotion = "false";
+      resetPuzzle("initial load");
+      schedule(() => runScenarioA(), 350);
+    </script>
+  </body>
+</html>

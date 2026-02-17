@@ -6,6 +6,7 @@ import { MoveList } from "@/components/MoveList";
 import { PromotionPicker } from "@/components/PromotionPicker";
 import { PuzzleInfo } from "@/components/PuzzleInfo";
 import { Timer } from "@/components/Timer";
+import { useDesktopShortcuts } from "@/hooks/useDesktopShortcuts";
 import { useStats } from "@/hooks/useStats";
 import { usePuzzle } from "@/hooks/usePuzzle";
 import { loadPuzzles } from "@/lib/puzzles";
@@ -151,32 +152,40 @@ export function App() {
     }
   }, [currentPuzzleId, goToPuzzle, navigate, routePuzzleId]);
 
+  const puzzleFeedbackEvent = puzzle.feedbackEvent;
+  const puzzlePhase = puzzle.phase;
+  const puzzleIsFailed = puzzle.isFailed;
+  const autoAdvanceToNextPuzzle = puzzle.settings.autoAdvanceToNextPuzzle;
+  const puzzleIsLast = puzzle.isLastPuzzle;
+  const puzzleCurrentId = puzzle.currentPuzzleId;
+  const advanceToNextPuzzle = puzzle.nextPuzzle;
+
   useEffect(() => {
-    const feedback = puzzle.feedbackEvent;
+    const feedback = puzzleFeedbackEvent;
     if (!feedback || feedback.id <= lastFeedbackIdRef.current) return;
     lastFeedbackIdRef.current = feedback.id;
     setPulseKind(feedback.kind);
     setPulseVariant((current) => (current === "pulse-a" ? "pulse-b" : "pulse-a"));
     if (
       feedback.kind === "correct" &&
-      puzzle.phase === "complete" &&
-      !puzzle.isFailed &&
-      puzzle.settings.autoAdvanceToNextPuzzle &&
-      !puzzle.isLastPuzzle
+      puzzlePhase === "complete" &&
+      !puzzleIsFailed &&
+      autoAdvanceToNextPuzzle &&
+      !puzzleIsLast
     ) {
-      const targetPuzzleId = puzzle.currentPuzzleId + 1;
-      puzzle.nextPuzzle();
+      const targetPuzzleId = puzzleCurrentId + 1;
+      advanceToNextPuzzle();
       navigate(`/puzzle/${targetPuzzleId}`);
     }
   }, [
+    advanceToNextPuzzle,
+    autoAdvanceToNextPuzzle,
     navigate,
-    puzzle.currentPuzzleId,
-    puzzle.feedbackEvent,
-    puzzle.isFailed,
-    puzzle.isLastPuzzle,
-    puzzle.nextPuzzle,
-    puzzle.phase,
-    puzzle.settings.autoAdvanceToNextPuzzle,
+    puzzleCurrentId,
+    puzzleFeedbackEvent,
+    puzzleIsFailed,
+    puzzleIsLast,
+    puzzlePhase,
   ]);
 
   useEffect(() => {
@@ -221,6 +230,45 @@ export function App() {
     return () => mediaQuery.removeEventListener("change", onSystemThemeChange);
   }, [puzzle.settings.overallTheme]);
 
+  const isComplete = puzzle.phase === "complete";
+  const isFirstPuzzle = puzzle.currentPuzzleId <= 1;
+  const isPrevDisabled = isFirstPuzzle;
+  const isNextDisabled = puzzle.isLastPuzzle;
+  const isHintDisabled = isComplete || puzzle.isHintLoading;
+  const isResetDisabled = puzzle.isAtInitialState;
+
+  const goToPreviousPuzzle = useCallback(() => {
+    const targetPuzzleId = puzzle.currentPuzzleId - 1;
+    puzzle.previousPuzzle();
+    navigate(`/puzzle/${targetPuzzleId}`);
+  }, [navigate, puzzle]);
+
+  const goToNextPuzzle = useCallback(() => {
+    const targetPuzzleId = puzzle.currentPuzzleId + 1;
+    puzzle.nextPuzzle();
+    navigate(`/puzzle/${targetPuzzleId}`);
+  }, [navigate, puzzle]);
+
+  const requestHint = useCallback(() => {
+    void puzzle.requestHint();
+  }, [puzzle]);
+
+  const resetPuzzle = useCallback(() => {
+    puzzle.resetCurrentPuzzle();
+  }, [puzzle]);
+
+  useDesktopShortcuts({
+    isMenuOpen,
+    isPrevDisabled,
+    isNextDisabled,
+    isHintDisabled,
+    isResetDisabled,
+    onPrev: goToPreviousPuzzle,
+    onNext: goToNextPuzzle,
+    onHint: requestHint,
+    onReset: resetPuzzle,
+  });
+
   if (puzzle.isLoading) {
     return <div className={APP_LOADING_CLASS}>Loading puzzles...</div>;
   }
@@ -232,8 +280,6 @@ export function App() {
   const puzzleId = puzzle.puzzleData?.problemid ?? 1;
   const puzzleType = puzzle.puzzleData?.type ?? "";
   const sideToMove = puzzle.puzzleData?.first ?? "";
-  const isComplete = puzzle.phase === "complete";
-  const isFirstPuzzle = puzzle.currentPuzzleId <= 1;
 
   const boardVisualState: BoardVisualState = isComplete
     ? puzzle.isFailed
@@ -271,22 +317,20 @@ export function App() {
   };
 
   const handleBack = () => {
-    if (isFirstPuzzle) return;
-    const targetPuzzleId = puzzle.currentPuzzleId - 1;
-    puzzle.previousPuzzle();
-    navigate(`/puzzle/${targetPuzzleId}`);
+    if (isPrevDisabled) return;
+    goToPreviousPuzzle();
   };
   const handleNext = () => {
-    if (puzzle.isLastPuzzle) return;
-    const targetPuzzleId = puzzle.currentPuzzleId + 1;
-    puzzle.nextPuzzle();
-    navigate(`/puzzle/${targetPuzzleId}`);
+    if (isNextDisabled) return;
+    goToNextPuzzle();
   };
   const handleHint = () => {
-    void puzzle.requestHint();
+    if (isHintDisabled) return;
+    requestHint();
   };
   const handleReset = () => {
-    puzzle.resetCurrentPuzzle();
+    if (isResetDisabled) return;
+    resetPuzzle();
   };
   const handleOpenMenu = () => {
     setShouldRenderMenu(true);
@@ -402,10 +446,10 @@ export function App() {
 
         <footer className="ui-layout-actions">
           <ActionBar
-            isPrevDisabled={isFirstPuzzle}
-            isNextDisabled={puzzle.isLastPuzzle}
-            isHintDisabled={isComplete || puzzle.isHintLoading}
-            isResetDisabled={puzzle.isAtInitialState}
+            isPrevDisabled={isPrevDisabled}
+            isNextDisabled={isNextDisabled}
+            isHintDisabled={isHintDisabled}
+            isResetDisabled={isResetDisabled}
             isHintBusy={puzzle.isHintLoading}
             onPrev={handleBack}
             onNext={handleNext}
